@@ -1,9 +1,11 @@
 package model;
 
 import com.google.common.hash.Hashing;
+import controller.DataBase;
 import javafx.scene.image.Image;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 
 public class User {
     private String username;
@@ -13,12 +15,28 @@ public class User {
     private int time;
     private int level;
 
-    public User(String username, String password, String avatarPath) {
+    private User(String username, String password, String avatarPath) {
         this.username = username;
-        this.password = encryptString(password);
+        this.password = password;
         this.avatarPath = avatarPath;
     }
 
+    public static User getNewUser(String username, String password) {
+        String avatarPath = "/assets/avatars/default/"
+                + getRandomAvatarNumber(DataBase.getDefaultAvatarsCount())
+                + ".jpg";
+        return new User(username, encryptString(password), avatarPath);
+    }
+
+    private static String encryptString(String input) {
+        return Hashing.sha256()
+                .hashString(input, StandardCharsets.UTF_8)
+                .toString();
+    }
+
+    private static int getRandomAvatarNumber(int totalNumber) {
+        return ((new Random()).nextInt(totalNumber)) + 1;
+    }
     public String getUsername() {
         return username;
     }
@@ -41,12 +59,6 @@ public class User {
 
     public int getTime() {
         return time;
-    }
-
-    private String encryptString(String input) {
-        return Hashing.sha256()
-                .hashString(input, StandardCharsets.UTF_8)
-                .toString();
     }
 
     public boolean isPasswordCorrect(String toBeEvaluated) {

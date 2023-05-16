@@ -11,6 +11,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import model.User;
 
+import java.io.FileNotFoundException;
 import java.net.URL;
 
 public class LoginMenu extends Application {
@@ -18,7 +19,7 @@ public class LoginMenu extends Application {
     private static final String fxmlSource = "/fxml/LoginMenu.fxml";
     private static final URL sourceUrl = LoginMenu.class.getResource(fxmlSource);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         DataBase.fetchUsers();
         launch(args);
         DataBase.pushUsers();

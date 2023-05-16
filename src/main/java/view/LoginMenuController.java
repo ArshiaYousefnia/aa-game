@@ -1,5 +1,6 @@
 package view;
 
+import controller.DataBase;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -26,13 +27,14 @@ public class LoginMenuController implements Initializable {
     @FXML
     private PasswordField password;
     @FXML
-    private Button LogIn;
+    private Button logIn;
     @FXML
     private Button signUp;
     @FXML
     private Button guest;
     @FXML
     private ImageView logoImageView;
+    private final controller.LoginMenuController controller = new controller.LoginMenuController();
     private static String logoPictureSource = "/assets/loginMenu/gameLogo.png";
     private static Image logoImage = new Image(LoginMenuController.class.getResource(logoPictureSource).toString());
 
@@ -40,15 +42,37 @@ public class LoginMenuController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         logoImageView.setImage(logoImage);
 
-        LogIn.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        logIn.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
+                String result = controller.logIn(username.getText(), password.getText());
+                outputLabel.setText(result);
 
+                username.clear();
+                password.clear();
+
+                if (DataBase.getCurrentUser() != null) {
+                    //TODO run main menu
+                }
+            }
+        });
+
+        signUp.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                String result;
+                result = controller.signUp(username.getText(), password.getText());
+
+                outputLabel.setText(result);
             }
         });
     }
 
     public static Image getLogoImage() {
         return logoImage;
+    }
+
+    public void clearOutput(MouseEvent mouseEvent) {
+        outputLabel.setText("");
     }
 }
