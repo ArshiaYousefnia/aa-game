@@ -1,0 +1,26 @@
+.BackGround {
+    -fx-background-color: #eeeddf;
+}
+
+.button {
+    -fx-background-color: white;
+    -fx-border-color: #23a8f1;
+    -fx-text-fill: #23a8f1;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-min-width: 70;
+    -fx-max-width: 70;
+}
+
+.button:hover {
+    -fx-background-color: green;
+    -fx-text-fill: yellow;
+    -fx-font-weight: bold;
+}
+
+.Box {
+    -fx-max-width: 350;
+    -fx-min-height: 160;
+    -fx-border-radius: 15;
+    -fx-border-color: green;
+}

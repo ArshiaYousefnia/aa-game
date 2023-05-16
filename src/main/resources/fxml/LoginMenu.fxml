@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.image.ImageView?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="view.LoginMenuController"
+            stylesheets="@../css/loginMenuStyles.css"
+            styleClass="BackGround"
+            prefHeight="700.0" prefWidth="600.0">
+
+    <center>
+        <VBox alignment="CENTER" spacing="20">
+            <ImageView fx:id="logoImageView" fitHeight="150" preserveRatio="true" />
+
+            <VBox maxWidth="200" styleClass="Box" spacing="20">
+
+                <VBox alignment="CENTER">
+                    <Label text="Username" fx:id="usernameLabel" maxWidth="300"/>
+                    <TextField fx:id="username" promptText="Username" maxWidth="300"/>
+                </VBox>
+
+                <VBox alignment="CENTER">
+                    <Label text="Password" fx:id="passwordLabel" maxWidth="300"/>
+                    <PasswordField fx:id="password" promptText="Password" maxWidth="300"/>
+                </VBox>
+
+                <HBox alignment="CENTER" spacing="10">
+                    <Button styleClass="button" text="Log in" fx:id="LogIn"/>
+                    <Button styleClass="button" text="Sign up" fx:id="signUp"/>
+                    <Button styleClass="button" text="Guest" fx:id="guest"/>
+                </HBox>
+
+            </VBox>
+            <Label alignment="CENTER" text="username not found!" textAlignment="CENTER" fx:id="outputLabel" maxWidth="150"/>
+        </VBox>
+    </center>
+
+</BorderPane>
