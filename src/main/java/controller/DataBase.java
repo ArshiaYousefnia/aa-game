@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class DataBase {
@@ -18,6 +20,10 @@ public class DataBase {
 
     public static User getUserByUsername(String username) {
         return users.getOrDefault(username, null);
+    }
+
+    public static Object[] getAllUsersList() {
+        return users.values().toArray();
     }
 
     public static void fetchUsers() throws FileNotFoundException {

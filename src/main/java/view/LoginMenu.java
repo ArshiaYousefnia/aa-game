@@ -1,15 +1,12 @@
 package view;
 
-import com.google.gson.Gson;
 import controller.DataBase;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import model.User;
 
 import java.io.FileNotFoundException;
 import java.net.URL;
@@ -27,6 +24,7 @@ public class LoginMenu extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        DataBase.setCurrentUser(null);
         mainStage = stage;
         BorderPane borderPane = FXMLLoader.load(sourceUrl);
         Scene loginMenuScene = new Scene(borderPane);

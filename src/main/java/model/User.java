@@ -88,4 +88,20 @@ public class User {
     public void setLevel(int level) {
         this.level = level;
     }
+
+    public boolean isWorstThan(User userToCompareTo) {
+        if (this.highScore < userToCompareTo.highScore)
+            return true;
+        if (this.highScore > userToCompareTo.highScore)
+            return false;
+        if (this.time > userToCompareTo.time)
+            return true;
+        if (this.time < userToCompareTo.time)
+            return false;
+//        if (this.level < userToCompareTo.level)
+//            return true;
+//        if (this.level > userToCompareTo.level)
+//            return false;
+        return this.username.compareTo(userToCompareTo.username) >= 0;
+    }
 }

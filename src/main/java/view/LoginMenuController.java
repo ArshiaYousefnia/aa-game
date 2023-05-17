@@ -11,7 +11,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -37,6 +39,7 @@ public class LoginMenuController implements Initializable {
     private final controller.LoginMenuController controller = new controller.LoginMenuController();
     private static String logoPictureSource = "/assets/loginMenu/gameLogo.png";
     private static Image logoImage = new Image(LoginMenuController.class.getResource(logoPictureSource).toString());
+    private final Stage stage = LoginMenu.getStage();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -52,7 +55,12 @@ public class LoginMenuController implements Initializable {
                 password.clear();
 
                 if (DataBase.getCurrentUser() != null) {
-                    //TODO run main menu
+                    MainMenu mainMenu = new MainMenu();
+                    try {
+                        mainMenu.start(stage);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         });
