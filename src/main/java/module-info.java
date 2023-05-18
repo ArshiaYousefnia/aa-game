@@ -7,7 +7,7 @@ module APGameAA {
 
 
     exports view;
-    opens view to javafx.fxml;
     opens model to com.google.gson;
     opens view.model to com.google.gson;
+    opens view to com.google.gson, javafx.fxml;
 }

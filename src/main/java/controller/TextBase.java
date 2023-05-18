@@ -3,8 +3,6 @@ package controller;
 import java.util.HashMap;
 
 public class TextBase {
-    private static boolean language = false;
-
     private static final HashMap<String, String> translationMap = new HashMap<>();
 
     static {
@@ -28,12 +26,10 @@ public class TextBase {
         translationMap.put("toggle", "تاگل");
     }
 
-    public static void toggleLanguage() {
-        language = !language;
-    }
+    //TODO update texts
 
     public static String getCurrentText(String input) {
-        if (!language)
+        if (DataBase.isLangEnglish())
             return input;
         return translationMap.getOrDefault(input, "!");
     }
