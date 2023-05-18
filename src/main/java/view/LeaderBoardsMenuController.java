@@ -1,6 +1,7 @@
 package view;
 
 import controller.DataBase;
+import controller.TextBase;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,6 +18,7 @@ import model.User;
 import view.model.CircleButton;
 
 public class LeaderBoardsMenuController {
+    private final static String exitButtonSource = "/assets/general/home.png";
     private final controller.LeaderBoardsMenuController controller = new controller.LeaderBoardsMenuController();
 
     private int levelToSortBY = 0;
@@ -27,9 +29,25 @@ public class LeaderBoardsMenuController {
         usersVbox = getVBox();
         insertUsersToTable(usersVbox);
         borderPane.setCenter(usersVbox);
-        borderPane.setBottom(new HBox(getToggleButton(), getBackButton()));
+        VBox columnVBox = getColumnVBox();
+        borderPane.setLeft(columnVBox);
 
         return borderPane;
+    }
+
+    private VBox getColumnVBox() {
+        VBox vBox = new VBox();
+        Circle circleButton = CircleButton.getCircleButton(
+                MainMenuController.getImagePattern(exitButtonSource), 15, new MainMenu());
+        Button toggleButton = getToggleButton();
+
+        vBox.setSpacing(30);
+        vBox.setMaxWidth(30);
+        vBox.setMinWidth(30);
+        vBox.setAlignment(Pos.valueOf("CENTER"));
+        vBox.getChildren().addAll(circleButton, toggleButton);
+
+        return vBox;
     }
 
     private VBox getVBox() {
@@ -59,10 +77,7 @@ public class LeaderBoardsMenuController {
             Label name = getNameLabel(sortedRanks[index].getUsername());
             Label highscore = getNumberLabel(sortedRanks[index].getHighScore());
 
-            hBox.getChildren().add(number);
-            hBox.getChildren().add(circle);
-            hBox.getChildren().add(name);
-            hBox.getChildren().add(highscore);
+            hBox.getChildren().addAll(number, circle, name, highscore);
             vBox.getChildren().add(hBox);
         }
     }
@@ -83,7 +98,7 @@ public class LeaderBoardsMenuController {
         return hBox;
     }
 
-    public Circle getAvatarCircle(User user, int radius) {
+    protected Circle getAvatarCircle(User user, int radius) {
         Circle circle = CircleButton.getCircleIcon(new ImagePattern(user.getAvatar()), radius);
 
         circle.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -93,12 +108,12 @@ public class LeaderBoardsMenuController {
                 secondary.setFill(new ImagePattern(user.getAvatar()));
                 secondary.setRadius(radius);
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("user info");
+                alert.setTitle(TextBase.getCurrentText("user info"));
                 alert.setGraphic(secondary);
                 alert.setHeaderText(user.getUsername());
-                alert.setContentText("highscore: " + user.getHighScore()
-                        + "\n\ntime: " + user.getTime()
-                        + "\n\nlevel: " + user.getLevel());
+                alert.setContentText(TextBase.getCurrentText("highscore") + ": " + user.getHighScore()
+                        + "\n\n" + TextBase.getCurrentText("time") + ": " + user.getTime()
+                        + "\n\n" + TextBase.getCurrentText("level") +  ": " + user.getLevel());
                 alert.showAndWait();
             }
         });
@@ -133,24 +148,8 @@ public class LeaderBoardsMenuController {
         return label;
     }
 
-    private Button getBackButton() {
-        Button button = new Button("Back");
-        button.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-                try {
-                    new MainMenu().start(LoginMenu.getStage());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-
-        return button;
-    }
-
     private Button getToggleButton() {
-        Button button = new Button("all");
+        Button button = new Button(TextBase.getCurrentText("all"));
         button.setMaxWidth(30);
         button.setMinWidth(30);
         button.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -158,7 +157,7 @@ public class LeaderBoardsMenuController {
             public void handle(MouseEvent mouseEvent) {
                 levelToSortBY++;
                 levelToSortBY %= 4;
-                button.setText((levelToSortBY == 0) ? "all" : Integer.toString(levelToSortBY));
+                button.setText((levelToSortBY == 0) ? TextBase.getCurrentText("all") : Integer.toString(levelToSortBY));
 
                 usersVbox.getChildren().clear();
                 insertUsersToTable(usersVbox);
@@ -166,5 +165,9 @@ public class LeaderBoardsMenuController {
         });
 
         return button;
+    }
+
+    public static String getExitButtonSource() {
+        return exitButtonSource;
     }
 }

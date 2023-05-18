@@ -17,7 +17,7 @@ public class MainMenuController {
     private static String settingsButtonSource = "/assets/mainMenu/settings.png";
     private static String exitButtonSource = "/assets/mainMenu/exit.png";
 
-    private static ImagePattern getImagePattern(String source) {
+    protected static ImagePattern getImagePattern(String source) {
         return new ImagePattern(new Image(MainMenuController.class.getResource(source).toString()));
     }
 
@@ -33,7 +33,7 @@ public class MainMenuController {
         return borderPane;
     }
 
-    private BorderPane getBorderPane() {
+    protected BorderPane getBorderPane() {
         BorderPane borderPane = new BorderPane();
         borderPane.setPadding(new Insets(50));
         borderPane.setMinHeight(700);
@@ -44,7 +44,7 @@ public class MainMenuController {
         return borderPane;
     }
 
-    private VBox getVBox() {
+    protected VBox getVBox() {
         VBox vBox = new VBox();
         vBox.setSpacing(100);
         vBox.setAlignment(Pos.valueOf("CENTER"));
@@ -58,7 +58,7 @@ public class MainMenuController {
         HBox hBox1 = getHBox();
         hBox1.getChildren().add(CircleButton.getCircleButton(
                 getImagePattern(playButtonSource), radius1, null));
-        //TODO fix destination app
+        //TODO fix destination apps
         hBox1.getChildren().add(CircleButton.getCircleButton(
                 getImagePattern(resumeButtonSource), radius1, null));
 
@@ -72,7 +72,7 @@ public class MainMenuController {
         vBox.getChildren().add(hBox2);
     }
 
-    private HBox getHBox() {
+    protected HBox getHBox() {
         HBox hBox = new HBox();
         hBox.setSpacing(100);
         hBox.setMaxHeight(150);

@@ -3,6 +3,7 @@ module APGameAA {
     requires javafx.fxml;
     requires com.google.gson;
     requires com.google.common;
+    requires java.desktop;
 
 
     exports view;

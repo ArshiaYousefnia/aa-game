@@ -66,4 +66,8 @@ public class DataBase {
     public static void addUser(User user) {
         users.put(user.getUsername(), user);
     }
+
+    public static void removeUser(User user) {
+        users.remove(user.getUsername(), user);
+    }
 }

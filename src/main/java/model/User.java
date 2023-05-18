@@ -11,21 +11,24 @@ public class User {
     private String username;
     private String password;
     private String avatarPath;
+    private int defaultAvatarNumber;
     private int highScore;
     private int time;
     private int level;
 
-    private User(String username, String password, String avatarPath) {
+    private User(String username, String password, String avatarPath, int number) {
         this.username = username;
         this.password = password;
         this.avatarPath = avatarPath;
+        this.defaultAvatarNumber = number;
     }
 
     public static User getNewUser(String username, String password) {
+        int number = getRandomAvatarNumber(DataBase.getDefaultAvatarsCount());
         String avatarPath = "/assets/avatars/default/"
-                + getRandomAvatarNumber(DataBase.getDefaultAvatarsCount())
+                + number
                 + ".jpg";
-        return new User(username, encryptString(password), avatarPath);
+        return new User(username, encryptString(password), avatarPath, number);
     }
 
     private static String encryptString(String input) {
@@ -35,7 +38,7 @@ public class User {
     }
 
     private static int getRandomAvatarNumber(int totalNumber) {
-        return ((new Random()).nextInt(totalNumber)) + 1;
+        return ((new Random(5464)).nextInt(totalNumber)) + 1;
     }
     public String getUsername() {
         return username;
@@ -103,5 +106,18 @@ public class User {
 //        if (this.level > userToCompareTo.level)
 //            return false;
         return this.username.compareTo(userToCompareTo.username) >= 0;
+    }
+
+    public int getDefaultAvatarNumber() {
+        return defaultAvatarNumber;
+    }
+
+    public void toggleDefaultAvatarNumber(int total) {
+        defaultAvatarNumber++;
+        if (defaultAvatarNumber == total + 1)
+            defaultAvatarNumber = 1;
+        setAvatarPath("/assets/avatars/default/"
+                + defaultAvatarNumber
+                + ".jpg");
     }
 }

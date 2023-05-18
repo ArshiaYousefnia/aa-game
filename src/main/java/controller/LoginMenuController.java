@@ -32,6 +32,21 @@ public class LoginMenuController {
         return "user signed up successfully!";
     }
 
+    public String changeUsername(String username) {
+        String messageToBeDelivered;
+        if ((messageToBeDelivered = checkEmptyField(username, "Test$1")) != null)
+            return TextBase.getCurrentText(messageToBeDelivered);
+        if (username.equals(DataBase.getCurrentUser().getUsername()))
+            return TextBase.getCurrentText("you already have this username!");
+        if (DataBase.getUserByUsername(username) != null)
+            return TextBase.getCurrentText("username unavailable!");
+        if ((messageToBeDelivered = checkUsername(username)) != null)
+            return TextBase.getCurrentText(messageToBeDelivered);
+
+        DataBase.getCurrentUser().setUsername(username);
+        return TextBase.getCurrentText("username successfully changed!");
+    }
+
     private String checkPassword(String password) {
         if (password.length() < 5)
             return "password length must be at least 5!";
@@ -69,5 +84,18 @@ public class LoginMenuController {
             return "password field is empty!";
 
         return null;
+    }
+
+    public String changePassword(String currentPassword, String newPassword) {
+        String messageToBeDelivered;
+        if (!DataBase.getCurrentUser().isPasswordCorrect(currentPassword))
+            return TextBase.getCurrentText("wrong current password!");
+        if ((messageToBeDelivered = checkEmptyField("username", newPassword)) != null)
+            return TextBase.getCurrentText(messageToBeDelivered);
+        if ((messageToBeDelivered = checkPassword(newPassword)) != null)
+            return TextBase.getCurrentText(messageToBeDelivered);
+
+        DataBase.getCurrentUser().setPassword(newPassword);
+        return TextBase.getCurrentText("successfully changed password!");
     }
 }
