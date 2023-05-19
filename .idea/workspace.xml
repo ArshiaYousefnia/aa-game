@@ -10,14 +10,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="984c1673-3ca8-4fd8-a5d9-77763dffc3a0" name="Changes" comment="5">
-      <change afterPath="$PROJECT_DIR$/src/main/java/view/GameApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/view/GameApplicationController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/view/model/GameLost.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/view/model/GameWon.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/controller/TextBase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/controller/TextBase.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/LeaderBoardsMenuController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/LeaderBoardsMenuController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/SettingsMenu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/SettingsMenu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/SettingsMenuController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/SettingsMenuController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/data/users.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/data/users.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/view/GameApplicationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/GameApplicationController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -142,7 +138,7 @@
       <workItem from="1684391548523" duration="46658000" />
       <workItem from="1684450375246" duration="1675000" />
       <workItem from="1684478392511" duration="3984000" />
-      <workItem from="1684483346304" duration="16675000" />
+      <workItem from="1684483346304" duration="29553000" />
     </task>
     <task id="LOCAL-00001" summary="second">
       <created>1684240029344</created>
@@ -179,7 +175,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684427306182</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="5">
+      <created>1684501023092</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1684501023092</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

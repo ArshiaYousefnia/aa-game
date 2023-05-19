@@ -1,13 +1,17 @@
 package view;
 
 import controller.DataBase;
+import controller.TextBase;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -16,7 +20,10 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
+import javafx.stage.Stage;
 import javafx.util.Duration;
+import view.model.GameLost;
+import view.model.GameWon;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,52 +32,65 @@ import java.util.Stack;
 public class GameApplicationController {
     private final double centralCircleRadius = 30;
     private final double  smallCircleRadius = 10;
-    private final double paneWidth = 600;
-    private final double paneHeight = 700;
-    private final double centerX = paneWidth / 2;
-    private final double centerY = paneHeight / 2;
+    private static final double paneWidth = 600;
+    private static final double paneHeight = 700;
+    private static final double centerX = paneWidth / 2;
+    private static final double centerY = paneHeight / 2;
     private final double orbitRadius = 200;
+    private ChangeListener changeListener;
     private final int totalBallsToThrow = DataBase.getBallsToThrow();
-
+    private int ballsLeftToThrow = 10;
+    //TODO fix this
+    private int score = 0;
+    private final double TotalTime = 300.0;
+    private double timePassed = 0.0;
+    private final double beginningTimeMillis = System.currentTimeMillis();
     private Circle centralCircle;
     private Rotate rotate;
     private Timeline timeline;
     private Stack<Circle> pendingCircles = new Stack<>();
-    private double omega = 30.0;
-    private HashMap<Double, Integer> existingcircles = new HashMap<>();
+    private double omega = 10.0;
+    private HashMap<Double, Integer> existingCircles = new HashMap<>();
 
     private Group lines = new Group();
     private Group circles = new Group();
     private Group texts = new Group();
+    private Pane gamePane;
+    private final Label ballsLeftLabel = new Label(Integer.toString(ballsLeftToThrow));
+    private final Label scoreBoard = new Label(Integer.toString(0));
+    private final Label timePassedLabel = new Label("0 : 0");
 
     private void loadBalls() {
-        //TODO add this
-        existingcircles.put(0.0, 1);
-        existingcircles.put(10.0, 2);
+        //TODO link this to json or sth
+        existingCircles.put(0.0, 1);
+        existingCircles.put(10.0, 2);
     }
     public Pane buildApp() {
-        Pane pane = getPane();
+        gamePane = getPane();
         loadBalls();
         loadGame();
         setRotation();
         setTimeLine();
-        addRotationTogroups();
-        pane.getChildren().addAll(centralCircle, circles, lines, texts);
+        addRotationToGroups();
+        addLabels();
+        gamePane.getChildren().addAll(centralCircle, circles, lines, texts);
         addInternalIntersectionWatchDog();
 
         assignEventToCircle();
 
         timeline.play();
-        return pane;
+        return gamePane;
     }
 
     private void assignEventToCircle() {
+        //TODO assign event to balls at bottom instead.
         centralCircle.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
                 Circle ball = getSmallCircleToBeAdded(centerX, centerY + orbitRadius);
-                putCircleToExistingCircles(ball, 56);
-                setOmega(-omega);
+                putCircleToExistingCircles(ball, ballsLeftToThrow);
+                decrementBallsLeft();
+                //setOmega(-omega);
             }
         });
     }
@@ -78,7 +98,7 @@ public class GameApplicationController {
     private void loadGame() {
         centralCircle = getCentralCircle();
 
-        for (Map.Entry<Double, Integer> currentSet : existingcircles.entrySet()) {
+        for (Map.Entry<Double, Integer> currentSet : existingCircles.entrySet()) {
             double x = getXFromAngle(currentSet.getKey());
             double y = getYFromAngle(currentSet.getKey());
             Circle ball = getSmallCircleForSetup(x, y);
@@ -92,29 +112,105 @@ public class GameApplicationController {
         }
     }
 
+    private void addLabels() {
+        timePassedLabel.setTextFill(Color.BLACK);
+        timePassedLabel.setStyle("-fx-font-size: x-large; -fx-background-color: wheat");
+        ballsLeftLabel.setTextFill(Color.RED);
+        ballsLeftLabel.setStyle("-fx-font-size: x-large; -fx-background-color: wheat");
+        scoreBoard.setTextFill(Color.GOLDENROD);
+        scoreBoard.setStyle("-fx-font-size: x-large; -fx-background-color: wheat");
+        scoreBoard.setLayoutX(centerX);
+        scoreBoard.setLayoutY(15);
+        ballsLeftLabel.setLayoutX(centerX + 50);
+        ballsLeftLabel.setLayoutY(15);
+        timePassedLabel.setLayoutY(15);
+        timePassedLabel.setLayoutX(centerX - 50);
+        gamePane.getChildren().addAll(scoreBoard, ballsLeftLabel, timePassedLabel);
+        //TODO add top labels to pane
+    }
+
     private void addInternalIntersectionWatchDog() {
-        rotate.angleProperty().addListener(new ChangeListener<Number>() {
 
+        changeListener = new ChangeListener() {
             @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
-
+            public void changed(ObservableValue observableValue, Object o, Object t1) {
+                updateTimePassed();
                 for (int i = 0; i < circles.getChildren().size() - 1; i++) {
                     for (int j = i + 1 ; j < circles.getChildren().size(); j++) {
                         if (circles.getChildren().get(i).intersects(circles.getChildren().get(j).getBoundsInParent())) {
                             //TODO link to end game caller
-                            System.out.println("internal intersection!");
+                            lostTheGame();
+                            rotate.angleProperty().removeListener(changeListener);
                         }
                     }
+                }
+
+                if (ballsLeftToThrow == 0) {
+                    //TODO link to end game caller
+                    wonTheGame();
+                    rotate.angleProperty().removeListener(changeListener);
+                }
+                else if (timePassed - TotalTime > 0) {
+                    //TODO link to end game caller
+                    lostTheGame();
+                    rotate.angleProperty().removeListener(changeListener);
+                }
+            }
+        };
+
+        rotate.angleProperty().addListener(changeListener);
+    }
+
+    private void wonTheGame() {
+        gamePane.setStyle("-fx-background-color: #0cf50c");
+        timeline.stop();
+        circles.getTransforms().clear();
+        lines.getTransforms().clear();
+        texts.getTransforms().clear();
+        GameWon gameWon = new GameWon(circles, texts, lines);
+        gameWon.play();
+
+        gameWon.setOnFinished(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                rotate.angleProperty().removeListener(changeListener);
+                showPopUp("YOU WON!");
+                try {
+                    new LoginMenu().start(new Stage());
+                    //TODO change for main menu
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
         });
     }
 
+    private void lostTheGame() {
+        gamePane.setStyle("-fx-background-color: red");
+        timeline.stop();
+        circles.getTransforms().clear();
+        lines.getTransforms().clear();
+        texts.getTransforms().clear();
+        GameLost gameLost = new GameLost(circles, texts, lines);
+        gameLost.play();
+        gameLost.setOnFinished(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                rotate.angleProperty().removeListener(changeListener);
+                showPopUp("YOU LOST!");
+                try {
+                    new LoginMenu().start(new Stage());
+                    //TODO change for main menu
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
 
-
+    }
     private void putCircleToExistingCircles(Circle circle, int number) {
 
-        existingcircles.put(getAngleFromXY(circle.getCenterX(), circle.getCenterY()), number);
+        existingCircles.put(getAngleFromXY(circle.getCenterX(), circle.getCenterY()), number);
 
         Line line = getLine(circle.getCenterX(), circle.getCenterY());
         Text text = getText(number, circle.getCenterX(), circle.getCenterY());
@@ -124,6 +220,20 @@ public class GameApplicationController {
         circles.getChildren().add(circle);
     }
 
+    private void decrementBallsLeft() {
+        ballsLeftToThrow--;
+        ballsLeftLabel.setText(Integer.toString(ballsLeftToThrow));
+
+        if (ballsLeftToThrow <= 5)
+            ballsLeftLabel.setTextFill(Color.GREEN);
+        else if (ballsLeftToThrow <= (totalBallsToThrow / 2))
+            ballsLeftLabel.setTextFill(Color.DARKCYAN);
+    }
+
+    private void addScore(int amount) {
+        score += amount;
+        scoreBoard.setText(Integer.toString(score));
+    }
     private Pane getPane() {
         Pane pane = new Pane();
         pane.setMinWidth(paneWidth);
@@ -138,7 +248,7 @@ public class GameApplicationController {
         rotate = new Rotate(0, centerX, centerY);
     }
 
-    private void addRotationTogroups() {
+    private void addRotationToGroups() {
         circles.getTransforms().add(rotate);
         lines.getTransforms().add(rotate);
         texts.getTransforms().add(rotate);
@@ -223,4 +333,31 @@ public class GameApplicationController {
         return Math.toDegrees(Math.atan((centerX - x) / (y - centerY)));
     }
 
+    private void updateTimePassed() {
+        timePassed = (System.currentTimeMillis() - beginningTimeMillis) / 1000;
+        timePassedLabel.setText((int) (timePassed) / 60 + " : " + (int) (timePassed % 60));
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    private void showPopUp(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(TextBase.getCurrentText(message));
+        alert.setHeaderText(TextBase.getCurrentText(message));
+        //TODO fix level
+        alert.setContentText(TextBase.getCurrentText("score") + ": " + score
+                + "\n\n" + TextBase.getCurrentText("time") + ": " + (int) timePassed
+                + "\n\n" + TextBase.getCurrentText("level") +  ": " + 0);
+        alert.show();
+    }
+
+    public static double getCenterX() {
+        return centerX;
+    }
+
+    public static double getCenterY() {
+        return centerY;
+    }
 }
