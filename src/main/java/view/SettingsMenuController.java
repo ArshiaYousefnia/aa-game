@@ -10,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import view.model.CircleButton;
@@ -17,7 +18,7 @@ import view.model.CircleButton;
 import java.util.ArrayList;
 
 public class SettingsMenuController {
-    private ArrayList<Label> labelsToBeUpdated;
+    private ArrayList<Label> labelsToBeUpdated = new ArrayList<>();
     private final String vClosePath = "/assets/settingsMenu/vClose.png";
     private final MainMenuController mainMenuController = new MainMenuController();
     private final String vOpenPath = "/assets/settingsMenu/vOpen.png";
@@ -25,22 +26,23 @@ public class SettingsMenuController {
 
     public BorderPane buildMenu() {
         BorderPane borderPane = mainMenuController.getBorderPane();
-        borderPane.setLeft(getLeftSideHBox());
-
-
+        borderPane.setLeft(getLeftSideVBox());
+        borderPane.setRight(getRightSideVBox());
         return borderPane;
     }
 
-    private HBox getRightSideHBox() {
-        HBox hBox = getLeftSideHBox();
-        hBox.getChildren().clear();
-
-
+    private VBox getRightSideVBox() {
+        VBox vBox = getLeftSideVBox();
+        vBox.getChildren().clear();
+        vBox.setMinWidth(120);
+        vBox.setMaxWidth(120);
+        vBox.getChildren().addAll(getDifficultyHBox(), getBallCountHBox());
+        return vBox;
     }
 
     private HBox getDifficultyHBox() {
         HBox hBox = new HBox();
-        hBox.setSpacing(5);
+        hBox.setSpacing(20);
 
         hBox.getChildren().addAll(getDifficultyLabel(), getDifficultyButton());
         return hBox;
@@ -50,13 +52,14 @@ public class SettingsMenuController {
         HBox hBox = new HBox();
         hBox.setSpacing(5);
 
-        hBox.getChildren().addAll(getBallsLabel(), getBallsButton())
+        hBox.getChildren().addAll(getBallsLabel(), getBallsButton());
+        return hBox;
     }
 
     private Label getBallsLabel() {
         Label balls = new Label(TextBase.getCurrentText("balls count"));
-
-
+        labelsToBeUpdated.add(balls);
+        return balls;
     }
     private Label getDifficultyLabel() {
         Label label = new Label(TextBase.getCurrentText("difficulty"));
@@ -64,15 +67,15 @@ public class SettingsMenuController {
         return label;
     }
 
-    private HBox getLeftSideHBox() {
-        HBox hBox = new HBox();
-        hBox.setSpacing(50);
-        hBox.setMaxWidth(90);
-        hBox.setMinWidth(90);
-        hBox.setAlignment(Pos.CENTER);
+    private VBox getLeftSideVBox() {
+        VBox vBox = new VBox();
+        vBox.setSpacing(30);
+        vBox.setMaxWidth(60);
+        vBox.setMinWidth(60);
+        vBox.setAlignment(Pos.CENTER_LEFT);
 
-        hBox.getChildren().addAll(getExitButton(), getLanguageButton(), getSoundStatusCircleButton());
-        return hBox;
+        vBox.getChildren().addAll(getExitButton(), getLanguageButton(), getSoundStatusCircleButton());
+        return vBox;
     }
 
 
@@ -120,6 +123,11 @@ public class SettingsMenuController {
         });
 
         return button;
+    }
+
+    private void toggleLanguages() {
+        labelsToBeUpdated.get(0).setText(TextBase.getCurrentText("difficulty"));
+        labelsToBeUpdated.get(1).setText(TextBase.getCurrentText("balls count"));
     }
 
     private Button getDifficultyButton() {

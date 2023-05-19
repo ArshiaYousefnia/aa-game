@@ -24,6 +24,7 @@ public class TextBase {
         translationMap.put("time", "زمان");
         translationMap.put("level", "درجۀ سختی");
         translationMap.put("toggle", "تاگل");
+        translationMap.put("balls count", "تعداد توپ ها");
     }
 
     //TODO update texts

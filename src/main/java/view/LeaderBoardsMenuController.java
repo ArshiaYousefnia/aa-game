@@ -150,8 +150,8 @@ public class LeaderBoardsMenuController {
 
     private Button getToggleButton() {
         Button button = new Button(TextBase.getCurrentText("all"));
-        button.setMaxWidth(30);
-        button.setMinWidth(30);
+        button.setMaxWidth(45);
+        button.setMinWidth(45);
         button.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
