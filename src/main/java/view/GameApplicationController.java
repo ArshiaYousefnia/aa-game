@@ -24,31 +24,35 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import view.model.GameLost;
 import view.model.GameWon;
+import view.model.StraightLineMotion;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 
 public class GameApplicationController {
-    private final double centralCircleRadius = 30;
+    private final double centralCircleRadius = 50;
     private final double  smallCircleRadius = 10;
     private static final double paneWidth = 600;
     private static final double paneHeight = 700;
     private static final double centerX = paneWidth / 2;
     private static final double centerY = paneHeight / 2;
     private final double orbitRadius = 200;
+    private final double beginningPointDistanceFromCenter = 250;
     private ChangeListener changeListener;
     private final int totalBallsToThrow = DataBase.getBallsToThrow();
     private int ballsLeftToThrow = 10;
     //TODO fix this
     private int score = 0;
+    private static double windSpeed = 0;
     private final double TotalTime = 300.0;
     private double timePassed = 0.0;
     private final double beginningTimeMillis = System.currentTimeMillis();
     private Circle centralCircle;
     private Rotate rotate;
     private Timeline timeline;
-    private Stack<Circle> pendingCircles = new Stack<>();
+    private Circle targetCircle;
+    private Circle reserveCircle;
+    private StraightLineMotion straightLineMotion;
     private double omega = 10.0;
     private HashMap<Double, Integer> existingCircles = new HashMap<>();
 
@@ -62,8 +66,8 @@ public class GameApplicationController {
 
     private void loadBalls() {
         //TODO link this to json or sth
-        existingCircles.put(0.0, 1);
-        existingCircles.put(10.0, 2);
+        existingCircles.put(0.0, null);
+        existingCircles.put(10.0, null);
     }
     public Pane buildApp() {
         gamePane = getPane();
@@ -76,21 +80,36 @@ public class GameApplicationController {
         gamePane.getChildren().addAll(centralCircle, circles, lines, texts);
         addInternalIntersectionWatchDog();
 
-        assignEventToCircle();
+        assignEventToPane();
 
         timeline.play();
         return gamePane;
     }
 
-    private void assignEventToCircle() {
-        //TODO assign event to balls at bottom instead.
-        centralCircle.setOnMouseClicked(new EventHandler<MouseEvent>() {
+    private void assignEventToPane() {
+        //TODO assign event to keys instead.
+        gamePane.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
-                Circle ball = getSmallCircleToBeAdded(centerX, centerY + orbitRadius);
-                putCircleToExistingCircles(ball, ballsLeftToThrow);
-                decrementBallsLeft();
-                //setOmega(-omega);
+                if (targetCircle != null || ballsLeftToThrow == 0)
+                    return;
+//                if (ballsLeftToThrow == totalBallsToThrow) {
+//                    targetCircle = getSmallCircleForSetup(centerX, centerY + beginningPointDistanceFromCenter);
+//                    gamePane.getChildren().add(targetCircle);
+//                }
+//                else
+                targetCircle = reserveCircle;
+
+                straightLineMotion = new StraightLineMotion(targetCircle);
+                straightLineMotion.play();
+
+                //putCircleToExistingCircles(ball, ballsLeftToThrow);
+                reserveCircle = null;
+
+                if (ballsLeftToThrow > 1) {
+                    reserveCircle = getSmallCircleForSetup(centerX, centerY + beginningPointDistanceFromCenter);
+                    gamePane.getChildren().add(reserveCircle);
+                }
             }
         });
     }
@@ -110,6 +129,8 @@ public class GameApplicationController {
             lines.getChildren().add(line);
             texts.getChildren().add(text);
         }
+        reserveCircle = getSmallCircleForSetup(centerX, centerY + beginningPointDistanceFromCenter);
+        gamePane.getChildren().add(reserveCircle);
     }
 
     private void addLabels() {
@@ -130,7 +151,6 @@ public class GameApplicationController {
     }
 
     private void addInternalIntersectionWatchDog() {
-
         changeListener = new ChangeListener() {
             @Override
             public void changed(ObservableValue observableValue, Object o, Object t1) {
@@ -150,7 +170,15 @@ public class GameApplicationController {
                     wonTheGame();
                     rotate.angleProperty().removeListener(changeListener);
                 }
-                else if (timePassed - TotalTime > 0) {
+                if (targetCircle != null && getDistanceFromCenter(targetCircle) <= orbitRadius) {
+                    straightLineMotion.stop();
+                    gamePane.getChildren().remove(targetCircle);
+
+                    putCircleToExistingCircles(getSmallCircleToBeAdded(targetCircle.getCenterX(), targetCircle.getCenterY()), ballsLeftToThrow);
+                    decrementBallsLeft();
+                    targetCircle = null;
+                }
+                else if (timePassed - TotalTime > 0.2) {
                     //TODO link to end game caller
                     lostTheGame();
                     rotate.angleProperty().removeListener(changeListener);
@@ -191,6 +219,10 @@ public class GameApplicationController {
         circles.getTransforms().clear();
         lines.getTransforms().clear();
         texts.getTransforms().clear();
+
+        if (reserveCircle != null)
+            gamePane.getChildren().remove(reserveCircle);
+
         GameLost gameLost = new GameLost(circles, texts, lines);
         gameLost.play();
         gameLost.setOnFinished(new EventHandler<ActionEvent>() {
@@ -234,6 +266,7 @@ public class GameApplicationController {
         score += amount;
         scoreBoard.setText(Integer.toString(score));
     }
+
     private Pane getPane() {
         Pane pane = new Pane();
         pane.setMinWidth(paneWidth);
@@ -310,8 +343,8 @@ public class GameApplicationController {
         return line;
     }
 
-    private Text getText(int number, double startX, double startY) {
-        Text text = new Text(Integer.toString(number));
+    private Text getText(Integer number, double startX, double startY) {
+        Text text = new Text((number == null) ? " " : Integer.toString(number));
         text.setFill(Color.WHITE);
         text.setStyle("-fx-font-size: medium");
 
@@ -353,11 +386,19 @@ public class GameApplicationController {
         alert.show();
     }
 
+    private double getDistanceFromCenter(Circle circle) {
+        return Math.sqrt(Math.pow(circle.getCenterX() - centerX, 2) + Math.pow(circle.getCenterY() - centerY, 2));
+    }
+
     public static double getCenterX() {
         return centerX;
     }
 
     public static double getCenterY() {
         return centerY;
+    }
+
+    public static double getWindSpeed() {
+        return windSpeed;
     }
 }

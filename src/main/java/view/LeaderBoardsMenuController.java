@@ -1,6 +1,5 @@
 package view;
 
-import controller.DataBase;
 import controller.TextBase;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
