@@ -24,15 +24,16 @@ public class GameWon extends Transition {
     protected void interpolate(double v) {
         for (int i = 0; i < circles.getChildren().size(); i++) {
             Circle circle = ((Circle) circles.getChildren().get(i));
-            circle.setCenterY(2 * circle.getCenterY() - GameApplicationController.getCenterY());
-            circle.setCenterX(2 * circle.getCenterX() + GameApplicationController.getCenterX());
+            circle.setLayoutY(2 * circle.getLayoutY() - GameApplicationController.getCenterY());
+            circle.setLayoutX(2 * circle.getLayoutX() + GameApplicationController.getCenterX());
             try {
                 Line line = ((Line) lines.getChildren().get(i));
                 line.setEndY(2 * line.getEndY() - GameApplicationController.getCenterY());
                 line.setEndX(2 * line.getEndX() - GameApplicationController.getCenterX());
+
                 Text text = ((Text) texts.getChildren().get(i));
-                text.setY(2 * text.getY() - GameApplicationController.getCenterY());
-                text.setX(2 * text.getX() - GameApplicationController.getCenterX());
+                text.setLayoutY(2 * text.getLayoutY() - GameApplicationController.getCenterY());
+                text.setLayoutX(2 * text.getLayoutX() - GameApplicationController.getCenterX());
             } catch (Exception ignored) {
             }
         }

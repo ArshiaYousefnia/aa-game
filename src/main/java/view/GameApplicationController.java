@@ -93,11 +93,6 @@ public class GameApplicationController {
             public void handle(MouseEvent mouseEvent) {
                 if (targetCircle != null || ballsLeftToThrow == 0)
                     return;
-//                if (ballsLeftToThrow == totalBallsToThrow) {
-//                    targetCircle = getSmallCircleForSetup(centerX, centerY + beginningPointDistanceFromCenter);
-//                    gamePane.getChildren().add(targetCircle);
-//                }
-//                else
                 targetCircle = reserveCircle;
 
                 straightLineMotion = new StraightLineMotion(targetCircle);
@@ -192,9 +187,9 @@ public class GameApplicationController {
     private void wonTheGame() {
         gamePane.setStyle("-fx-background-color: #0cf50c");
         timeline.stop();
-        circles.getTransforms().clear();
-        lines.getTransforms().clear();
-        texts.getTransforms().clear();
+//        circles.getTransforms().clear();
+//        lines.getTransforms().clear();
+//        texts.getTransforms().clear();
         GameWon gameWon = new GameWon(circles, texts, lines);
         gameWon.play();
 

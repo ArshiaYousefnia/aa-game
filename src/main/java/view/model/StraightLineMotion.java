@@ -7,7 +7,7 @@ import view.GameApplicationController;
 
 public class StraightLineMotion extends Transition {
     private final Circle circle;
-    private final double upSpeed = 5;
+    private final double upSpeed = 7;
 
     public StraightLineMotion(Circle circle) {
         this.circle = circle;
