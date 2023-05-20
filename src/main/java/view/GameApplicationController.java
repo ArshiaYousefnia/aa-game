@@ -9,6 +9,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
@@ -43,7 +44,7 @@ public class GameApplicationController {
     private int ballsLeftToThrow = 10;
     //TODO fix this
     private int score = 0;
-    private static double windSpeed = 0;
+    private static double windSpeed = 1;
     private final double TotalTime = 300.0;
     private double timePassed = 0.0;
     private final double beginningTimeMillis = System.currentTimeMillis();
@@ -53,7 +54,7 @@ public class GameApplicationController {
     private Circle targetCircle;
     private Circle reserveCircle;
     private StraightLineMotion straightLineMotion;
-    private double omega = 10.0;
+    private double omega = 5.0;
     private HashMap<Double, Integer> existingCircles = new HashMap<>();
 
     private Group lines = new Group();
@@ -133,13 +134,17 @@ public class GameApplicationController {
         timePassedLabel.setStyle("-fx-font-size: x-large; -fx-background-color: wheat");
         ballsLeftLabel.setTextFill(Color.RED);
         ballsLeftLabel.setStyle("-fx-font-size: x-large; -fx-background-color: wheat");
-        scoreBoard.setTextFill(Color.GOLDENROD);
-        scoreBoard.setStyle("-fx-font-size: x-large; -fx-background-color: wheat");
+        scoreBoard.setTextFill(Color.BROWN);
+        scoreBoard.setStyle("-fx-font-size: x-large; -fx-background-color: wheat; -fx-border-radius: 5");
         scoreBoard.setLayoutX(centerX);
         scoreBoard.setLayoutY(15);
         ballsLeftLabel.setLayoutX(centerX + 50);
         ballsLeftLabel.setLayoutY(15);
         timePassedLabel.setLayoutY(15);
+        scoreBoard.setMinWidth(50);
+        ballsLeftLabel.setMinWidth(50);
+        ballsLeftLabel.setAlignment(Pos.CENTER);
+        scoreBoard.setAlignment(Pos.CENTER);
         timePassedLabel.setLayoutX(centerX - 50);
         gamePane.getChildren().addAll(scoreBoard, ballsLeftLabel, timePassedLabel);
         //TODO add top labels to pane
@@ -150,27 +155,28 @@ public class GameApplicationController {
             @Override
             public void changed(ObservableValue observableValue, Object o, Object t1) {
                 updateTimePassed();
-                for (int i = 0; i < circles.getChildren().size() - 1; i++) {
-                    for (int j = i + 1 ; j < circles.getChildren().size(); j++) {
-                        if (circles.getChildren().get(i).intersects(circles.getChildren().get(j).getBoundsInParent())) {
-                            //TODO link to end game caller
-                            lostTheGame();
-                            rotate.angleProperty().removeListener(changeListener);
-                        }
-                    }
-                }
 
-                if (ballsLeftToThrow == 0) {
-                    //TODO link to end game caller
-                    wonTheGame();
-                    rotate.angleProperty().removeListener(changeListener);
-                }
                 if (targetCircle != null && getDistanceFromCenter(targetCircle) <= orbitRadius) {
                     straightLineMotion.stop();
-                    gamePane.getChildren().remove(targetCircle);
 
+                    gamePane.getChildren().remove(targetCircle);
                     putCircleToExistingCircles(getSmallCircleToBeAdded(targetCircle.getCenterX(), targetCircle.getCenterY()), ballsLeftToThrow);
+
+                    if (checkIntersection()) {
+                        lostTheGame();
+                        rotate.angleProperty().removeListener(changeListener);
+                        return;
+                    }
+
+                    addScore(5);
                     decrementBallsLeft();
+
+                    if (ballsLeftToThrow == 0) {
+                        //TODO link to end game caller
+                        wonTheGame();
+                        rotate.angleProperty().removeListener(changeListener);
+                    }
+
                     targetCircle = null;
                 }
                 else if (timePassed - TotalTime > 0.2) {
@@ -210,15 +216,15 @@ public class GameApplicationController {
 
     private void lostTheGame() {
         gamePane.setStyle("-fx-background-color: red");
-        timeline.stop();
-        circles.getTransforms().clear();
-        lines.getTransforms().clear();
-        texts.getTransforms().clear();
+        timeline.pause();
+//        circles.getTransforms().clear();
+//        lines.getTransforms().clear();
+//        texts.getTransforms().clear();
 
         if (reserveCircle != null)
             gamePane.getChildren().remove(reserveCircle);
 
-        GameLost gameLost = new GameLost(circles, texts, lines);
+        GameLost gameLost = new GameLost(circles, texts, lines, rotate.getAngle());
         gameLost.play();
         gameLost.setOnFinished(new EventHandler<ActionEvent>() {
             @Override
@@ -363,7 +369,10 @@ public class GameApplicationController {
 
     private void updateTimePassed() {
         timePassed = (System.currentTimeMillis() - beginningTimeMillis) / 1000;
-        timePassedLabel.setText((int) (timePassed) / 60 + " : " + (int) (timePassed % 60));
+        timePassedLabel.setText(((((int) (timePassed)) / 60) <= 9 ? "0" : "") +
+                (int) (timePassed) / 60 +
+                ":" +
+                ((int) (timePassed % 60) <= 9 ? "0" : "") + (int) (timePassed % 60));
     }
 
     public int getScore() {
@@ -383,6 +392,14 @@ public class GameApplicationController {
 
     private double getDistanceFromCenter(Circle circle) {
         return Math.sqrt(Math.pow(circle.getCenterX() - centerX, 2) + Math.pow(circle.getCenterY() - centerY, 2));
+    }
+
+    private boolean checkIntersection() {
+        for (int i = 0; i < circles.getChildren().size() - 1; i++)
+            if (circles.getChildren().get(i).intersects(circles.getChildren().get(circles.getChildren().size() - 1).getBoundsInParent())) {
+                return true;
+            }
+        return false;
     }
 
     public static double getCenterX() {

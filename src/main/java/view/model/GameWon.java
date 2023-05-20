@@ -18,22 +18,22 @@ public class GameWon extends Transition {
         this.lines = lines;
         this.circles = circles;
         this.setCycleCount(1);
-        this.setCycleDuration(Duration.millis(300));
+        this.setCycleDuration(Duration.millis(3000));
     }
     @Override
     protected void interpolate(double v) {
         for (int i = 0; i < circles.getChildren().size(); i++) {
             Circle circle = ((Circle) circles.getChildren().get(i));
-            circle.setLayoutY(2 * circle.getLayoutY() - GameApplicationController.getCenterY());
-            circle.setLayoutX(2 * circle.getLayoutX() + GameApplicationController.getCenterX());
+            circle.setCenterY(circle.getCenterY() + 0.05 * (circle.getCenterY() - GameApplicationController.getCenterY()));
+            circle.setCenterX(circle.getCenterX() + 0.05 * (circle.getCenterX() - GameApplicationController.getCenterX()));
             try {
                 Line line = ((Line) lines.getChildren().get(i));
-                line.setEndY(2 * line.getEndY() - GameApplicationController.getCenterY());
-                line.setEndX(2 * line.getEndX() - GameApplicationController.getCenterX());
+                line.setEndY(line.getEndY() + 0.05 * (line.getEndY() - GameApplicationController.getCenterY()));
+                line.setEndX(line.getEndX() + 0.05 * (line.getEndX() - GameApplicationController.getCenterX()));
 
                 Text text = ((Text) texts.getChildren().get(i));
-                text.setLayoutY(2 * text.getLayoutY() - GameApplicationController.getCenterY());
-                text.setLayoutX(2 * text.getLayoutX() - GameApplicationController.getCenterX());
+                text.setY(text.getY() + 0.05 * (text.getY() - GameApplicationController.getCenterY()));
+                text.setX(text.getX() + 0.05 * (text.getX() - GameApplicationController.getCenterX()));
             } catch (Exception ignored) {
             }
         }
