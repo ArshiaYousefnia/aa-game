@@ -23,6 +23,7 @@ public class GameLost extends Transition {
         this.angle = angle;
         v1 = 40 * Math.cos(Math.toRadians(angle));
         v2 = 40 * Math.sin(Math.toRadians(angle));
+        this.setDelay(Duration.millis(1000));
     }
 
     @Override

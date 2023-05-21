@@ -1,6 +1,5 @@
 package view;
 
-import controller.DataBase;
 import controller.TextBase;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -25,10 +24,12 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import view.model.GameLost;
 import view.model.GameWon;
+import view.model.Phase2Animation;
 import view.model.StraightLineMotion;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class GameApplicationController {
     private final double centralCircleRadius = 50;
@@ -38,15 +39,16 @@ public class GameApplicationController {
     private static final double centerX = paneWidth / 2;
     private static final double centerY = paneHeight / 2;
     private final double orbitRadius = 200;
-    private final double beginningPointDistanceFromCenter = 250;
+    private final double beginningPointDistanceFromCenter = 270;
     private ChangeListener changeListener;
-    private final int totalBallsToThrow = DataBase.getBallsToThrow();
-    private int ballsLeftToThrow = 10;
+    private final int totalBallsToThrow = 10;
+    private int ballsLeftToThrow = totalBallsToThrow;
     //TODO fix this
     private int score = 0;
-    private static double windSpeed = 1;
+    private static double windSpeed = 50;
     private final double TotalTime = 300.0;
     private double timePassed = 0.0;
+    private double lastDirectionReverseTime = 0.0;
     private final double beginningTimeMillis = System.currentTimeMillis();
     private Circle centralCircle;
     private Rotate rotate;
@@ -54,9 +56,10 @@ public class GameApplicationController {
     private Circle targetCircle;
     private Circle reserveCircle;
     private StraightLineMotion straightLineMotion;
+    private Phase2Animation phase2Animation;
+    private Random rand = new Random();
     private double omega = 5.0;
     private HashMap<Double, Integer> existingCircles = new HashMap<>();
-
     private Group lines = new Group();
     private Group circles = new Group();
     private Group texts = new Group();
@@ -79,7 +82,7 @@ public class GameApplicationController {
         addRotationToGroups();
         addLabels();
         gamePane.getChildren().addAll(centralCircle, circles, lines, texts);
-        addInternalIntersectionWatchDog();
+        addMainWatchDog();
 
         assignEventToPane();
 
@@ -150,7 +153,7 @@ public class GameApplicationController {
         //TODO add top labels to pane
     }
 
-    private void addInternalIntersectionWatchDog() {
+    private void addMainWatchDog() {
         changeListener = new ChangeListener() {
             @Override
             public void changed(ObservableValue observableValue, Object o, Object t1) {
@@ -170,6 +173,9 @@ public class GameApplicationController {
 
                     addScore(5);
                     decrementBallsLeft();
+
+                    if (ballsLeftToThrow == (3 * totalBallsToThrow) / 4)
+                        initiatePhase2Animations();
 
                     if (ballsLeftToThrow == 0) {
                         //TODO link to end game caller
@@ -193,6 +199,7 @@ public class GameApplicationController {
     private void wonTheGame() {
         gamePane.setStyle("-fx-background-color: #0cf50c");
         timeline.stop();
+        stopAnimations();
 //        circles.getTransforms().clear();
 //        lines.getTransforms().clear();
 //        texts.getTransforms().clear();
@@ -217,6 +224,7 @@ public class GameApplicationController {
     private void lostTheGame() {
         gamePane.setStyle("-fx-background-color: red");
         timeline.pause();
+        stopAnimations();
 //        circles.getTransforms().clear();
 //        lines.getTransforms().clear();
 //        texts.getTransforms().clear();
@@ -298,11 +306,48 @@ public class GameApplicationController {
         timeline.setCycleCount(Timeline.INDEFINITE);
     }
 
+    private void addInternalWatchDog() {
+        rotate.angleProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
+                if (checkIntersection()) {
+                    lostTheGame();
+                    rotate.angleProperty().removeListener(changeListener);
+                }
+            }
+        });
+    }
+
+    private void initiatePhase2Animations() {
+        phase2Animation = new Phase2Animation(circles, smallCircleRadius);
+        phase2Animation.play();
+        addRandomDirectionReverse();
+        addInternalWatchDog();
+    }
+
+    private void addRandomDirectionReverse() {
+        rotate.angleProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
+                if ((timePassed - lastDirectionReverseTime >= (4.0 + rand.nextDouble(3.0))
+                        && (rand.nextBoolean()))){
+                    setOmega(-omega);
+                    lastDirectionReverseTime = timePassed;
+                }
+            }
+        });
+    }
+
     private void setOmega(double newOmega) {
-        timeline.play();
+        timeline.pause();
         this.omega = newOmega;
         setTimeLine();
         timeline.play();
+    }
+
+    private void stopAnimations() {
+        if (phase2Animation != null)
+            phase2Animation.stop();
     }
 
 

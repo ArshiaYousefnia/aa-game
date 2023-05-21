@@ -10,11 +10,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="984c1673-3ca8-4fd8-a5d9-77763dffc3a0" name="Changes" comment="8">
+      <change afterPath="$PROJECT_DIR$/src/main/java/view/model/Phase2Animation.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/view/GameApplicationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/GameApplicationController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/view/model/GameLost.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/model/GameLost.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/model/GameWon.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/model/GameWon.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/model/StraightLineMotion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/model/StraightLineMotion.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,7 +140,9 @@
       <workItem from="1684478392511" duration="3984000" />
       <workItem from="1684483346304" duration="42435000" />
       <workItem from="1684580301644" duration="1638000" />
-      <workItem from="1684593821333" duration="8927000" />
+      <workItem from="1684593821333" duration="9401000" />
+      <workItem from="1684610083694" duration="1797000" />
+      <workItem from="1684649933775" duration="6496000" />
     </task>
     <task id="LOCAL-00001" summary="second">
       <created>1684240029344</created>
@@ -206,7 +207,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684527110478</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="8">
+      <created>1684602780773</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1684602780773</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
