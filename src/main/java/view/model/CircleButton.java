@@ -21,14 +21,14 @@ public class CircleButton extends Circle {
         circle.setOnMouseEntered(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
-                circle.setRadius(circle.getRadius() * 1.2);
+                circle.setRadius(circle.getRadius() * 1.08);
             }
         });
 
         circle.setOnMouseExited(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
-                circle.setRadius(circle.getRadius() / 1.2);
+                circle.setRadius(circle.getRadius() / 1.08);
             }
         });
 

@@ -7,20 +7,37 @@ import view.LoginMenu;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public class DataBase {
+    private static ArrayList<Double>[] startingBalls = new ArrayList[3];
+    static {
+        startingBalls[0] = new ArrayList<Double>() {
+            {
+                add(10.0);add(60.0);add(90.0);add(150.0);add(210.0);
+            }
+        };
+        startingBalls[1] = new ArrayList<Double>() {
+            {
+                add(30.0);add(60.0);add(80.0);add(100.0);add(120.0);
+            }
+        };
+
+        startingBalls[2] = new ArrayList<Double>() {
+            {
+                add(0.0);add(15.0);add(180.0);add(300.0);add(340.0);
+            }
+        };
+    }
     private static final String usersDataPath = "src/main/resources/data/users.json";
     private static final HashMap<String, User> users = new HashMap<>();
     private static User currentUser = null;
     private final static int defaultAvatarsCount = 7;
-    private final static int minimumBallsToThrow = 30;
-    private final static int maximumBallsToThrow = 80;
+    private final static int minimumBallsToThrow = 10;
+    private final static int maximumBallsToThrow = 40;
     private static  int ballsToThrow = 30;
     private static int difficulty = 2;
+    private static int startingBallsIndex = 0;
     private static boolean isLanguageEnglish = true;
     private static boolean soundStatus = false;
     private static String ballThrowKey = "space";
@@ -133,5 +150,19 @@ public class DataBase {
         difficulty++;
         if (difficulty == 4)
             difficulty = 1;
+    }
+
+    public static int getStartingBallsIndex() {
+        return startingBallsIndex;
+    }
+
+    public static void incrementStartingBallsIndex() {
+        startingBallsIndex++;
+        if (startingBallsIndex == startingBalls.length)
+            startingBallsIndex = 0;
+    }
+
+    public static ArrayList<Double> getCurrentBalls() {
+        return startingBalls[startingBallsIndex];
     }
 }

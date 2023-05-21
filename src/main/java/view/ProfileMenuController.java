@@ -73,6 +73,7 @@ public class ProfileMenuController {
         Button changeMyUsername = new Button(TextBase.getCurrentText("change my username"));
         buttons.add(changeMyUsername);
         TextField textField = new TextField();
+        textField.setPromptText(TextBase.getCurrentText("new username"));
         textFields.add(textField);
         hBox2.getChildren().addAll(changeMyUsername, textField);
 
