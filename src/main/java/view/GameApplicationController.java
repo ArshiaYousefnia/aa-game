@@ -1,6 +1,7 @@
 package view;
 
 import controller.TextBase;
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -10,8 +11,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -22,10 +22,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import view.model.GameLost;
-import view.model.GameWon;
-import view.model.Phase2Animation;
-import view.model.StraightLineMotion;
+import view.model.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,6 +54,7 @@ public class GameApplicationController {
     private Circle reserveCircle;
     private StraightLineMotion straightLineMotion;
     private Phase2Animation phase2Animation;
+    private Phase3Animation phase3Animation;
     private Random rand = new Random();
     private double omega = 5.0;
     private HashMap<Double, Integer> existingCircles = new HashMap<>();
@@ -134,21 +132,27 @@ public class GameApplicationController {
 
     private void addLabels() {
         timePassedLabel.setTextFill(Color.BLACK);
-        timePassedLabel.setStyle("-fx-font-size: x-large; -fx-background-color: wheat");
+        timePassedLabel.setStyle(
+                "-fx-font-size: x-large; -fx-background-color: wheat; -fx-border-radius: 10 10 10 10;" +
+                        " -fx-background-radius:  10 10 10 10; -fx-border-color: black;");
         ballsLeftLabel.setTextFill(Color.RED);
-        ballsLeftLabel.setStyle("-fx-font-size: x-large; -fx-background-color: wheat");
+        ballsLeftLabel.setStyle(
+                "-fx-font-size: x-large; -fx-background-color: wheat; -fx-border-radius: 10 10 10 10;" +
+                        " -fx-background-radius:  10 10 10 10; -fx-border-color: black;");
         scoreBoard.setTextFill(Color.BROWN);
-        scoreBoard.setStyle("-fx-font-size: x-large; -fx-background-color: wheat; -fx-border-radius: 5");
-        scoreBoard.setLayoutX(centerX);
+        scoreBoard.setStyle(
+                "-fx-font-size: x-large; -fx-background-color: wheat; -fx-border-radius: 10 10 10 10;" +
+                        " -fx-background-radius:  10 10 10 10; -fx-border-color: black;");
+        scoreBoard.setLayoutX(centerX - 25);
         scoreBoard.setLayoutY(15);
-        ballsLeftLabel.setLayoutX(centerX + 50);
+        ballsLeftLabel.setLayoutX(centerX + 30);
         ballsLeftLabel.setLayoutY(15);
         timePassedLabel.setLayoutY(15);
         scoreBoard.setMinWidth(50);
         ballsLeftLabel.setMinWidth(50);
         ballsLeftLabel.setAlignment(Pos.CENTER);
         scoreBoard.setAlignment(Pos.CENTER);
-        timePassedLabel.setLayoutX(centerX - 50);
+        timePassedLabel.setLayoutX(centerX - 75);
         gamePane.getChildren().addAll(scoreBoard, ballsLeftLabel, timePassedLabel);
         //TODO add top labels to pane
     }
@@ -165,7 +169,7 @@ public class GameApplicationController {
                     gamePane.getChildren().remove(targetCircle);
                     putCircleToExistingCircles(getSmallCircleToBeAdded(targetCircle.getCenterX(), targetCircle.getCenterY()), ballsLeftToThrow);
 
-                    if (checkIntersection()) {
+                    if (phase2Animation == null && checkIntersection()) {
                         lostTheGame();
                         rotate.angleProperty().removeListener(changeListener);
                         return;
@@ -176,6 +180,8 @@ public class GameApplicationController {
 
                     if (ballsLeftToThrow == (3 * totalBallsToThrow) / 4)
                         initiatePhase2Animations();
+                    else if (ballsLeftToThrow == (totalBallsToThrow / 2))
+                        initiatePhase3Animations();
 
                     if (ballsLeftToThrow == 0) {
                         //TODO link to end game caller
@@ -196,10 +202,15 @@ public class GameApplicationController {
         rotate.angleProperty().addListener(changeListener);
     }
 
+    private void initiatePhase3Animations() {
+        phase3Animation = new Phase3Animation(circles, lines, texts);
+        phase3Animation.play();
+    }
+
     private void wonTheGame() {
+        stopAnimations();
         gamePane.setStyle("-fx-background-color: #0cf50c");
         timeline.stop();
-        stopAnimations();
 //        circles.getTransforms().clear();
 //        lines.getTransforms().clear();
 //        texts.getTransforms().clear();
@@ -210,21 +221,26 @@ public class GameApplicationController {
             @Override
             public void handle(ActionEvent actionEvent) {
                 rotate.angleProperty().removeListener(changeListener);
-                showPopUp("YOU WON!");
-                try {
-                    new LoginMenu().start(new Stage());
-                    //TODO change for main menu
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                Alert alert = showPopUp("YOU WON!");
+                alert.setOnCloseRequest(new EventHandler<DialogEvent>() {
+                    @Override
+                    public void handle(DialogEvent dialogEvent) {
+                        try {
+                            new LoginMenu().start(new Stage());
+                            //TODO change for main menu
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
             }
         });
     }
 
     private void lostTheGame() {
+        stopAnimations();
         gamePane.setStyle("-fx-background-color: red");
         timeline.pause();
-        stopAnimations();
 //        circles.getTransforms().clear();
 //        lines.getTransforms().clear();
 //        texts.getTransforms().clear();
@@ -238,13 +254,19 @@ public class GameApplicationController {
             @Override
             public void handle(ActionEvent actionEvent) {
                 rotate.angleProperty().removeListener(changeListener);
-                showPopUp("YOU LOST!");
-                try {
-                    new LoginMenu().start(new Stage());
-                    //TODO change for main menu
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                Alert alert = showPopUp("YOU LOST!");
+                alert.setOnCloseRequest(new EventHandler<DialogEvent>() {
+                    @Override
+                    public void handle(DialogEvent dialogEvent) {
+                        try {
+                            new LoginMenu().start(new Stage());
+                            //TODO change for main menu
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+
             }
         });
 
@@ -329,7 +351,7 @@ public class GameApplicationController {
         rotate.angleProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
-                if ((timePassed - lastDirectionReverseTime >= (4.0 + rand.nextDouble(3.0))
+                if ((timePassed - lastDirectionReverseTime >= (4.0 + rand.nextDouble(0.7,9.0))
                         && (rand.nextBoolean()))){
                     setOmega(-omega);
                     lastDirectionReverseTime = timePassed;
@@ -348,6 +370,11 @@ public class GameApplicationController {
     private void stopAnimations() {
         if (phase2Animation != null)
             phase2Animation.stop();
+        if (phase3Animation != null)
+            phase3Animation.stop();
+        circles.setOpacity(1);
+        texts.setOpacity(1);
+        lines.setOpacity(1);
     }
 
 
@@ -424,15 +451,17 @@ public class GameApplicationController {
         return score;
     }
 
-    private void showPopUp(String message) {
+    private Alert showPopUp(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(TextBase.getCurrentText(message));
         alert.setHeaderText(TextBase.getCurrentText(message));
+        ((Button) alert.getDialogPane().lookupButton(ButtonType.OK)).setText("back to main menu");
         //TODO fix level
         alert.setContentText(TextBase.getCurrentText("score") + ": " + score
                 + "\n\n" + TextBase.getCurrentText("time") + ": " + (int) timePassed
                 + "\n\n" + TextBase.getCurrentText("level") +  ": " + 0);
         alert.show();
+        return alert;
     }
 
     private double getDistanceFromCenter(Circle circle) {
