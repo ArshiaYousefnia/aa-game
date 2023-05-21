@@ -16,5 +16,6 @@ public class GameApplication extends Application {
         Scene scene = new Scene(pane);
         stage.setScene(scene);
         stage.show();
+        controller.directFocus();
     }
 }

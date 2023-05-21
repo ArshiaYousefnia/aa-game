@@ -1,6 +1,7 @@
 module APGameAA {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.media;
     requires com.google.gson;
     requires com.google.common;
     requires java.desktop;

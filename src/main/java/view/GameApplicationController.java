@@ -13,7 +13,6 @@ import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -23,6 +22,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import model.GameData;
 import view.model.*;
 
 import java.util.HashMap;
@@ -39,7 +39,7 @@ public class GameApplicationController {
     private final double orbitRadius = 200;
     private final double beginningPointDistanceFromCenter = 270;
     private ChangeListener changeListener;
-    private final int totalBallsToThrow = 10;
+    private final int totalBallsToThrow = 15;
     private int ballsLeftToThrow = totalBallsToThrow;
     //TODO fix this
     private int score = 0;
@@ -58,6 +58,7 @@ public class GameApplicationController {
     private StraightLineMotion straightLineMotion;
     private Phase2Animation phase2Animation;
     private Phase3Animation phase3Animation;
+    private FreezeModeTransition freezeModeTransition;
     private WindSpeedTransition windSpeedTransition;
     private Random rand = new Random();
     private double omega = 5.0;
@@ -67,14 +68,25 @@ public class GameApplicationController {
     private Group texts = new Group();
     private Pane gamePane;
     private final Label ballsLeftLabel = new Label(Integer.toString(ballsLeftToThrow));
-    private final Label scoreBoard = new Label(Integer.toString(0));
+    private final Label scoreBoard = new Label(Integer.toString(score));
     private final Label timePassedLabel = new Label("0 : 0");
     private final Label windDegreeLabel = new Label(Double.toString(windDegree));
+    private final ProgressBar freezeMode = new ProgressBar(0);
+    private boolean isFreezed = false;
+    private double freezeLengthSeconds = 3;
 
-    private void loadBalls() {
-        //TODO link this to json or sth
-        existingCircles.put(0.0, null);
-        existingCircles.put(10.0, null);
+    private void loadBalls(GameData gameData) {
+        //TODO take an GameData object and update locals;
+
+
+        //extract method named preprations
+        existingCircles.put(50.0, null);
+        freezeMode.setProgress(0);
+        ballsLeftToThrow++;
+        decrementBallsLeft();
+        updateTimePassed();
+        addScore(score);
+        setWindDegree(windDegree);
     }
     public Pane buildApp() {
         gamePane = getPane();
@@ -84,7 +96,8 @@ public class GameApplicationController {
         setTimeLine();
         addRotationToGroups();
         addLabels();
-        gamePane.getChildren().addAll(centralCircle, circles, lines, texts);
+        addProgressbar();
+        gamePane.getChildren().addAll(circles, lines, texts, getNewCentralCircle(), centralCircle);
         addMainWatchDog();
 
         assignEventToPane();
@@ -94,30 +107,62 @@ public class GameApplicationController {
     }
 
     private void assignEventToPane() {
-        //TODO assign event to keys instead.
-        gamePane.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        gamePane.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
-            public void handle(MouseEvent mouseEvent) {
-                if (targetCircle != null || ballsLeftToThrow == 0)
-                    return;
-                targetCircle = reserveCircle;
+            public void handle(KeyEvent keyEvent) {
+                KeyCode keyCode = keyEvent.getCode();
 
-                straightLineMotion = new StraightLineMotion(targetCircle, windDegree);
-                straightLineMotion.play();
+                if (keyCode.equals(KeyCode.SPACE) && targetCircle == null && ballsLeftToThrow != 0) {
+                    targetCircle = reserveCircle;
 
-                reserveCircle = null;
+                    straightLineMotion = new StraightLineMotion(targetCircle, windDegree);
+                    straightLineMotion.play();
 
-                if (ballsLeftToThrow > 1) {
-                    reserveCircle = getSmallCircleForSetup(reserveCircleX, centerY + beginningPointDistanceFromCenter);
-                    gamePane.getChildren().add(reserveCircle);
+                    reserveCircle = null;
+
+                    if (ballsLeftToThrow > 1) {
+                        reserveCircle = getSmallCircleForSetup(reserveCircleX, centerY + beginningPointDistanceFromCenter);
+                        gamePane.getChildren().add(reserveCircle);
+                    }
                 }
+                else if (keyCode.equals(KeyCode.TAB) && (freezeMode.getProgress() >= 0.99)) {
+                    triggerFreezeMode();
+                }
+                else if (windSpeedTransition != null) {
+                    double displacement = 8.0;
+
+                    if (keyCode.equals(KeyCode.LEFT) && (reserveCircleX >= centerX - orbitRadius + displacement)) {
+                        reserveCircleX -= displacement;
+                        if (reserveCircle != null)
+                            reserveCircle.setCenterX(reserveCircle.getCenterX() - displacement);
+                    }
+                    else if (keyCode.equals(KeyCode.RIGHT) && (reserveCircleX <= centerX + orbitRadius - displacement)) {
+                        reserveCircleX += displacement;
+                        if (reserveCircle != null)
+                            reserveCircle.setCenterX(reserveCircle.getCenterX() + displacement);
+                    }
+                }
+                }
+        });
+    }
+
+    private void triggerFreezeMode() {
+        isFreezed = true;
+        freezeMode.setProgress(0);
+        freezeModeTransition = new FreezeModeTransition(this);
+        freezeModeTransition.play();
+
+        freezeModeTransition.setOnFinished(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                isFreezed = false;
             }
         });
     }
 
     private void loadGame() {
-        centralCircle = getCentralCircle();
-        //TODO check if you have to trigger phase animation after loading again
+        centralCircle = getNewCentralCircle();
+        checkEarlyPhaseTrigger();
         for (Map.Entry<Double, Integer> currentSet : existingCircles.entrySet()) {
             double x = getXFromAngle(currentSet.getKey());
             double y = getYFromAngle(currentSet.getKey());
@@ -130,8 +175,19 @@ public class GameApplicationController {
             lines.getChildren().add(line);
             texts.getChildren().add(text);
         }
-        reserveCircle = getSmallCircleForSetup(centerX, centerY + beginningPointDistanceFromCenter);
-        gamePane.getChildren().add(reserveCircle);
+        if (ballsLeftToThrow != 0) {
+            reserveCircle = getSmallCircleForSetup(centerX, centerY + beginningPointDistanceFromCenter);
+            gamePane.getChildren().add(reserveCircle);
+        }
+    }
+
+    private void checkEarlyPhaseTrigger() {
+        if (ballsLeftToThrow <= (3 * totalBallsToThrow) / 4)
+            initiatePhase2Animations();
+        if (ballsLeftToThrow <= (totalBallsToThrow / 2))
+            initiatePhase3Animations();
+        if (ballsLeftToThrow <= (totalBallsToThrow / 4))
+            initiatePhase4Animations();
     }
 
     private void addLabels() {
@@ -192,6 +248,7 @@ public class GameApplicationController {
                         return;
                     }
 
+                    incrementFreezeBar();
                     addScore(5);//TODO improve score protocol
                     decrementBallsLeft();
 
@@ -222,31 +279,7 @@ public class GameApplicationController {
     }
 
     private void initiatePhase4Animations() {
-        initiateBallDisplacementHandlers();
         addTransitionForWindDegree();
-    }
-
-    private void initiateBallDisplacementHandlers() {
-        gamePane.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent keyEvent) {
-                KeyCode keyCode = keyEvent.getCode();
-                double displacement = 8.0;
-
-                if (keyCode.equals(KeyCode.LEFT) && (reserveCircleX >= centerX - orbitRadius + displacement)) {
-                    reserveCircleX -= displacement;
-                    if (reserveCircle != null)
-                        reserveCircle.setCenterX(reserveCircle.getCenterX() - displacement);
-                }
-                else if (keyCode.equals(KeyCode.RIGHT) && (reserveCircleX <= centerX + orbitRadius - displacement)) {
-                    reserveCircleX += displacement;
-                    if (reserveCircle != null)
-                        reserveCircle.setCenterX(reserveCircle.getCenterX() + displacement);
-                }
-
-            }
-        });
-        gamePane.requestFocus();
     }
 
     private void addTransitionForWindDegree() {
@@ -414,7 +447,7 @@ public class GameApplicationController {
         });
     }
 
-    private void setOmega(double newOmega) {
+    public void setOmega(double newOmega) {
         timeline.pause();
         this.omega = newOmega;
         setTimeLine();
@@ -435,7 +468,7 @@ public class GameApplicationController {
 
 
     ///////////////////////////////////////////////////////////////////////////////////////
-    private Circle getCentralCircle() {
+    private Circle getNewCentralCircle() {
         Circle centralCircle = new Circle(centralCircleRadius);
 
         centralCircle.setStyle("-fx-background-color: black");
@@ -472,6 +505,20 @@ public class GameApplicationController {
         return line;
     }
 
+    private void addProgressbar() {
+        setUpProgressBar();
+        freezeMode.setLayoutY(20);
+        freezeMode.setLayoutX(centerX - 160);
+        gamePane.getChildren().add(freezeMode);
+    }
+
+    private void setUpProgressBar() {
+        freezeMode.setMinWidth(70);
+        freezeMode.setMaxWidth(70);
+        freezeMode.setStyle("-fx-background-color: wheat; -fx-border-radius: 10 10 10 10;" +
+        " -fx-background-radius:  10 10 10 10; -fx-border-color: black;");
+    }
+
     private Text getText(Integer number, double startX, double startY) {
         Text text = new Text((number == null) ? " " : Integer.toString(number));
         text.setFill(Color.WHITE);
@@ -501,6 +548,15 @@ public class GameApplicationController {
                 (int) (timePassed) / 60 +
                 ":" +
                 ((int) (timePassed % 60) <= 9 ? "0" : "") + (int) (timePassed % 60));
+    }
+
+    private void incrementFreezeBar() {
+        if (isFreezed) return;
+        double currentProgress = freezeMode.getProgress();
+        if (currentProgress != 1) {
+            currentProgress += 0.1;
+            freezeMode.setProgress(currentProgress);
+        }
     }
 
     public int getScore() {
@@ -547,5 +603,21 @@ public class GameApplicationController {
 
     public double getWindDegree() {
         return windDegree;
+    }
+
+    public void directFocus() {
+        gamePane.requestFocus();
+    }
+
+    public double getFreefreezeLengthSeconds() {
+        return freezeLengthSeconds;
+    }
+
+    public double getOmega() {
+        return omega;
+    }
+
+    public Circle getCentralCircle() {
+        return centralCircle;
     }
 }
