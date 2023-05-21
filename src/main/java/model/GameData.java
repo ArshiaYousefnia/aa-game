@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class GameData {
-    private final int totalBallsToThrow = 15;
-    private int ballsLeftToThrow = totalBallsToThrow;
+    private final int totalBallsToThrow;
+    private int ballsLeftToThrow;
     private int score = 0;
     private double windDegree = 0;
     private double windSpeed = 1.5;
-    private final double TotalTime = 300.0;
+    private final double totalTime = 300.0;
     private double timePassed = 0.0;
     private double lastDirectionReverseTime = 0.0;
     private double omega = 5.0;
@@ -17,7 +17,8 @@ public class GameData {
     private double freezeBarProgress;
     private double freezeLengthSeconds = 3;
 
-    private GameData(int ballsLeftToThrow, int score, double windDegree, double windSpeed, double timePassed, double lastDirectionReverseTime, double omega, HashMap<Double, Integer> existingCircles, double freezeBarProgress, double freezeLengthSeconds) {
+    public GameData(int totalBallsToThrow, int ballsLeftToThrow, int score, double windDegree, double windSpeed, double timePassed, double lastDirectionReverseTime, double omega, HashMap<Double, Integer> existingCircles, double freezeBarProgress, double freezeLengthSeconds) {
+        this.totalBallsToThrow = totalBallsToThrow;
         this.ballsLeftToThrow = ballsLeftToThrow;
         this.score = score;
         this.windDegree = windDegree;
@@ -25,7 +26,7 @@ public class GameData {
         this.timePassed = timePassed;
         this.lastDirectionReverseTime = lastDirectionReverseTime;
         this.omega = omega;
-        this.existingCircles = existingCircles;
+        this.existingCircles.putAll(existingCircles);
         this.freezeBarProgress = freezeBarProgress;
         this.freezeLengthSeconds = freezeLengthSeconds;
     }
@@ -60,6 +61,54 @@ public class GameData {
                 break;
         }
 
-        return new GameData(ballsLeftToThrow, score, windDegree, windSpeed, timePassed, lastDirectionReverseTime, omega, existingCircles, freezeBarProgress, freezeLengthSeconds);
+        return new GameData(totalBallsToThrow, ballsLeftToThrow, score, windDegree, windSpeed, timePassed, lastDirectionReverseTime, omega, existingCircles, freezeBarProgress, freezeLengthSeconds);
+    }
+
+    public int getTotalBallsToThrow() {
+        return totalBallsToThrow;
+    }
+
+    public int getBallsLeftToThrow() {
+        return ballsLeftToThrow;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public double getWindDegree() {
+        return windDegree;
+    }
+
+    public double getWindSpeed() {
+        return windSpeed;
+    }
+
+    public double getTotalTime() {
+        return totalTime;
+    }
+
+    public double getTimePassed() {
+        return timePassed;
+    }
+
+    public double getLastDirectionReverseTime() {
+        return lastDirectionReverseTime;
+    }
+
+    public double getOmega() {
+        return omega;
+    }
+
+    public HashMap<Double, Integer> getExistingCircles() {
+        return existingCircles;
+    }
+
+    public double getFreezeBarProgress() {
+        return freezeBarProgress;
+    }
+
+    public double getFreezeLengthSeconds() {
+        return freezeLengthSeconds;
     }
 }

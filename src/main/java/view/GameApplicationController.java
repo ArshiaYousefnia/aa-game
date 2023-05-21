@@ -22,6 +22,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import model.DataPackage;
 import model.GameData;
 import view.model.*;
 
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class GameApplicationController {
+    private DataPackage dataPackage;
     private final double centralCircleRadius = 50;
     private final double  smallCircleRadius = 10;
     private static final double paneWidth = 600;
@@ -39,13 +41,13 @@ public class GameApplicationController {
     private final double orbitRadius = 200;
     private final double beginningPointDistanceFromCenter = 270;
     private ChangeListener changeListener;
-    private final int totalBallsToThrow = 15;
+    private int totalBallsToThrow = 15;
     private int ballsLeftToThrow = totalBallsToThrow;
     //TODO fix this
     private int score = 0;
     private double windDegree = 0;
     private double windSpeed = 1.5;
-    private final double TotalTime = 300.0;
+    private double totalTime = 300.0;
     private double timePassed = 0.0;
     private double lastDirectionReverseTime = 0.0;
     private final double beginningTimeMillis = System.currentTimeMillis();
@@ -75,11 +77,26 @@ public class GameApplicationController {
     private boolean isFreezed = false;
     private double freezeLengthSeconds = 3;
 
-    private void loadBalls(GameData gameData) {
-        //TODO take an GameData object and update locals;
+    private void loadRequirements(DataPackage dataPackage) {
+        this.dataPackage = dataPackage;
+        GameData gameData = dataPackage.getCurrentData();
+        totalBallsToThrow = gameData.getTotalBallsToThrow();
+        ballsLeftToThrow = gameData.getBallsLeftToThrow();
+        score = gameData.getScore();
+        windDegree = gameData.getWindDegree();
+        windSpeed = gameData.getWindSpeed();
+        totalTime = gameData.getTotalTime();
+        timePassed = gameData.getTimePassed();
+        lastDirectionReverseTime = gameData.getLastDirectionReverseTime();
+        omega = gameData.getOmega();
+        existingCircles.putAll(gameData.getExistingCircles());
+        freezeMode.setProgress(gameData.getFreezeBarProgress());
+        freezeLengthSeconds = gameData.getFreezeLengthSeconds();
 
+        doPreparations();
+    }
 
-        //extract method named preprations
+    private void doPreparations() {
         existingCircles.put(50.0, null);
         freezeMode.setProgress(0);
         ballsLeftToThrow++;
@@ -88,9 +105,10 @@ public class GameApplicationController {
         addScore(score);
         setWindDegree(windDegree);
     }
-    public Pane buildApp() {
+
+    public Pane buildApp(DataPackage dataPackage) {
         gamePane = getPane();
-        loadBalls();
+        loadRequirements(dataPackage);
         loadGame();
         setRotation();
         setTimeLine();
@@ -267,7 +285,7 @@ public class GameApplicationController {
 
                     targetCircle = null;
                 }
-                else if (timePassed - TotalTime > 0.2) {
+                else if (timePassed - totalTime > 0.2) {
                     //TODO link to end game caller
                     lostTheGame();
                     rotate.angleProperty().removeListener(changeListener);
@@ -619,5 +637,13 @@ public class GameApplicationController {
 
     public Circle getCentralCircle() {
         return centralCircle;
+    }
+
+    private void updateDataPackage() {
+        dataPackage.setCurrentData(new GameData(totalBallsToThrow, ballsLeftToThrow, score, windDegree, windSpeed, timePassed, lastDirectionReverseTime, omega, existingCircles, freezeMode.getProgress(), freezeLengthSeconds));
+    }
+
+    public DataPackage getDataPackage() {
+        return dataPackage;
     }
 }

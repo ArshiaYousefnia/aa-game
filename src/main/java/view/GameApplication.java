@@ -12,7 +12,7 @@ public class GameApplication extends Application {
     }
     @Override
     public void start(Stage stage) throws Exception {
-        Pane pane = controller.buildApp();
+        Pane pane = controller.buildApp();//TODO provide data package
         Scene scene = new Scene(pane);
         stage.setScene(scene);
         stage.show();
