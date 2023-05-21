@@ -1,7 +1,6 @@
 package view;
 
 import controller.TextBase;
-import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -12,6 +11,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -42,7 +43,8 @@ public class GameApplicationController {
     private int ballsLeftToThrow = totalBallsToThrow;
     //TODO fix this
     private int score = 0;
-    private static double windSpeed = 50;
+    private double windDegree = 0;
+    private double windSpeed = 1.5;
     private final double TotalTime = 300.0;
     private double timePassed = 0.0;
     private double lastDirectionReverseTime = 0.0;
@@ -51,10 +53,12 @@ public class GameApplicationController {
     private Rotate rotate;
     private Timeline timeline;
     private Circle targetCircle;
+    private double reserveCircleX = centerX;
     private Circle reserveCircle;
     private StraightLineMotion straightLineMotion;
     private Phase2Animation phase2Animation;
     private Phase3Animation phase3Animation;
+    private WindSpeedTransition windSpeedTransition;
     private Random rand = new Random();
     private double omega = 5.0;
     private HashMap<Double, Integer> existingCircles = new HashMap<>();
@@ -65,6 +69,7 @@ public class GameApplicationController {
     private final Label ballsLeftLabel = new Label(Integer.toString(ballsLeftToThrow));
     private final Label scoreBoard = new Label(Integer.toString(0));
     private final Label timePassedLabel = new Label("0 : 0");
+    private final Label windDegreeLabel = new Label(Double.toString(windDegree));
 
     private void loadBalls() {
         //TODO link this to json or sth
@@ -97,14 +102,13 @@ public class GameApplicationController {
                     return;
                 targetCircle = reserveCircle;
 
-                straightLineMotion = new StraightLineMotion(targetCircle);
+                straightLineMotion = new StraightLineMotion(targetCircle, windDegree);
                 straightLineMotion.play();
 
-                //putCircleToExistingCircles(ball, ballsLeftToThrow);
                 reserveCircle = null;
 
                 if (ballsLeftToThrow > 1) {
-                    reserveCircle = getSmallCircleForSetup(centerX, centerY + beginningPointDistanceFromCenter);
+                    reserveCircle = getSmallCircleForSetup(reserveCircleX, centerY + beginningPointDistanceFromCenter);
                     gamePane.getChildren().add(reserveCircle);
                 }
             }
@@ -113,7 +117,7 @@ public class GameApplicationController {
 
     private void loadGame() {
         centralCircle = getCentralCircle();
-
+        //TODO check if you have to trigger phase animation after loading again
         for (Map.Entry<Double, Integer> currentSet : existingCircles.entrySet()) {
             double x = getXFromAngle(currentSet.getKey());
             double y = getYFromAngle(currentSet.getKey());
@@ -143,17 +147,24 @@ public class GameApplicationController {
         scoreBoard.setStyle(
                 "-fx-font-size: x-large; -fx-background-color: wheat; -fx-border-radius: 10 10 10 10;" +
                         " -fx-background-radius:  10 10 10 10; -fx-border-color: black;");
+        windDegreeLabel.setStyle(
+                "-fx-font-size: x-large; -fx-background-color: wheat; -fx-border-radius: 10 10 10 10;" +
+                        " -fx-background-radius:  10 10 10 10; -fx-border-color: black;");
         scoreBoard.setLayoutX(centerX - 25);
         scoreBoard.setLayoutY(15);
+        windDegreeLabel.setLayoutY(15);
+        windDegreeLabel.setLayoutX(centerX + 85);
         ballsLeftLabel.setLayoutX(centerX + 30);
+        windDegreeLabel.setAlignment(Pos.CENTER);
         ballsLeftLabel.setLayoutY(15);
+        windDegreeLabel.setMinWidth(50);
         timePassedLabel.setLayoutY(15);
         scoreBoard.setMinWidth(50);
         ballsLeftLabel.setMinWidth(50);
         ballsLeftLabel.setAlignment(Pos.CENTER);
         scoreBoard.setAlignment(Pos.CENTER);
         timePassedLabel.setLayoutX(centerX - 75);
-        gamePane.getChildren().addAll(scoreBoard, ballsLeftLabel, timePassedLabel);
+        gamePane.getChildren().addAll(scoreBoard, ballsLeftLabel, timePassedLabel, windDegreeLabel);
         //TODO add top labels to pane
     }
 
@@ -162,6 +173,12 @@ public class GameApplicationController {
             @Override
             public void changed(ObservableValue observableValue, Object o, Object t1) {
                 updateTimePassed();
+
+                if (targetCircle != null && (targetCircle.getCenterX() <= 0 || targetCircle.getCenterX() >= paneWidth)) {
+                    lostTheGame();
+                    rotate.angleProperty().removeListener(changeListener);
+                    return;
+                }
 
                 if (targetCircle != null && getDistanceFromCenter(targetCircle) <= orbitRadius) {
                     straightLineMotion.stop();
@@ -175,13 +192,15 @@ public class GameApplicationController {
                         return;
                     }
 
-                    addScore(5);
+                    addScore(5);//TODO improve score protocol
                     decrementBallsLeft();
 
                     if (ballsLeftToThrow == (3 * totalBallsToThrow) / 4)
                         initiatePhase2Animations();
                     else if (ballsLeftToThrow == (totalBallsToThrow / 2))
                         initiatePhase3Animations();
+                    else if (ballsLeftToThrow == (totalBallsToThrow / 4))
+                        initiatePhase4Animations();
 
                     if (ballsLeftToThrow == 0) {
                         //TODO link to end game caller
@@ -200,6 +219,39 @@ public class GameApplicationController {
         };
 
         rotate.angleProperty().addListener(changeListener);
+    }
+
+    private void initiatePhase4Animations() {
+        initiateBallDisplacementHandlers();
+        addTransitionForWindDegree();
+    }
+
+    private void initiateBallDisplacementHandlers() {
+        gamePane.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                KeyCode keyCode = keyEvent.getCode();
+                double displacement = 8.0;
+
+                if (keyCode.equals(KeyCode.LEFT) && (reserveCircleX >= centerX - orbitRadius + displacement)) {
+                    reserveCircleX -= displacement;
+                    if (reserveCircle != null)
+                        reserveCircle.setCenterX(reserveCircle.getCenterX() - displacement);
+                }
+                else if (keyCode.equals(KeyCode.RIGHT) && (reserveCircleX <= centerX + orbitRadius - displacement)) {
+                    reserveCircleX += displacement;
+                    if (reserveCircle != null)
+                        reserveCircle.setCenterX(reserveCircle.getCenterX() + displacement);
+                }
+
+            }
+        });
+        gamePane.requestFocus();
+    }
+
+    private void addTransitionForWindDegree() {
+        windSpeedTransition = new WindSpeedTransition(this, windSpeed);
+        windSpeedTransition.play();
     }
 
     private void initiatePhase3Animations() {
@@ -247,6 +299,8 @@ public class GameApplicationController {
 
         if (reserveCircle != null)
             gamePane.getChildren().remove(reserveCircle);
+        if (targetCircle != null)
+            gamePane.getChildren().remove(targetCircle);
 
         GameLost gameLost = new GameLost(circles, texts, lines, rotate.getAngle());
         gameLost.play();
@@ -351,7 +405,7 @@ public class GameApplicationController {
         rotate.angleProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
-                if ((timePassed - lastDirectionReverseTime >= (4.0 + rand.nextDouble(0.7,9.0))
+                if ((timePassed - lastDirectionReverseTime >= (4.0 + rand.nextDouble(0.7,4.0))
                         && (rand.nextBoolean()))){
                     setOmega(-omega);
                     lastDirectionReverseTime = timePassed;
@@ -372,6 +426,8 @@ public class GameApplicationController {
             phase2Animation.stop();
         if (phase3Animation != null)
             phase3Animation.stop();
+        if (windSpeedTransition != null)
+            windSpeedTransition.stop();
         circles.setOpacity(1);
         texts.setOpacity(1);
         lines.setOpacity(1);
@@ -484,7 +540,12 @@ public class GameApplicationController {
         return centerY;
     }
 
-    public static double getWindSpeed() {
-        return windSpeed;
+    public void setWindDegree(double amount) {
+        windDegree = amount;
+        windDegreeLabel.setText(Double.toString(windDegree));
+    }
+
+    public double getWindDegree() {
+        return windDegree;
     }
 }
