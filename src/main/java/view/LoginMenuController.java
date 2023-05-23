@@ -74,6 +74,17 @@ public class LoginMenuController implements Initializable {
                 outputLabel.setText(result);
             }
         });
+
+        guest.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                try {
+                    new MainMenu().start(stage);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     public static Image getLogoImage() {

@@ -1,6 +1,7 @@
 package view;
 
 import controller.DataBase;
+import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
@@ -63,10 +64,12 @@ public class MainMenuController {
                 GameData.getNewGameGameData(DataBase.getDifficulty(), DataBase.getCurrentBalls(), DataBase.getBallsToThrow())));
         hBox1.getChildren().add(CircleButton.getCircleButton(
                 getImagePattern(playButtonSource), radius1, gameApplication));
-        //TODO fix destination apps
-        hBox1.getChildren().add(CircleButton.getCircleButton(
-                getImagePattern(resumeButtonSource), radius1, null));
+        Application application = new MainMenu();
 
+        if (DataBase.getCurrentUser() != null && DataBase.getCurrentUser().getDataPackage() != null)
+            application = new GameApplication(DataBase.getCurrentUser().getDataPackage());
+        hBox1.getChildren().add(CircleButton.getCircleButton(
+                    getImagePattern(resumeButtonSource), radius1, application));
         HBox hBox2 = getHBox();
         hBox2.getChildren().add(CircleButton.getCircleButton(
                 getImagePattern(leaderBoardsButtonSource), radius2, new LeaderBoardsMenu()));
@@ -88,8 +91,13 @@ public class MainMenuController {
 
     private void mountBottomButtons(HBox hBox) {
         int radius = 30;
+        Application application = new MainMenu();
+        if (DataBase.getCurrentUser() != null)
+            application = new ProfileMenu();
+        Image guest = new Image(
+                LoginMenu.class.getResource("/assets/avatars/guest.jpg").toExternalForm());
         hBox.getChildren().add(CircleButton.getCircleButton(
-                new ImagePattern(DataBase.getCurrentUser().getAvatar()), 30, new ProfileMenu()));
+                new ImagePattern((DataBase.getCurrentUser() == null) ? guest : DataBase.getCurrentUser().getAvatar()), 30, application));
         hBox.getChildren().add(CircleButton.getCircleButton(
                 getImagePattern(exitButtonSource), 30, new LoginMenu()));
 

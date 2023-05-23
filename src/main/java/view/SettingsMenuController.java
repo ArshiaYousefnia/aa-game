@@ -50,7 +50,7 @@ public class SettingsMenuController {
         vBox.setMinWidth(120);
         vBox.setMaxWidth(120);
         vBox.setLayoutX(480);
-        vBox.setLayoutY(80);
+        vBox.setLayoutY(180);
         vBox.getChildren().addAll(getDifficultyHBox(), getBallCountHBox());
         return vBox;
     }
@@ -89,7 +89,7 @@ public class SettingsMenuController {
         vBox.setMinWidth(60);
         vBox.setAlignment(Pos.CENTER_LEFT);
         vBox.setLayoutX(40);
-        vBox.setLayoutY(80);
+        vBox.setLayoutY(180);
         vBox.getChildren().addAll(getExitButton(), getLanguageButton(), getSoundStatusCircleButton());
         return vBox;
     }

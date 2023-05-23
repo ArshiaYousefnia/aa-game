@@ -2,6 +2,7 @@ package view;
 
 import controller.TextBase;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
@@ -16,14 +17,15 @@ public class PauseUtility {
 
     public HBox getPauseToolbar() {
         HBox hBox = new HBox();
+        hBox.setAlignment(Pos.CENTER);
         hBox.setStyle("-fx-background-color: wheat; -fx-border-radius: 10 10 10 10;"
                 + "-fx-background-radius:  10 10 10 10; -fx-border-color: black;");
 
-        hBox.setMaxWidth(500);
+        hBox.setMaxWidth(400);
         hBox.setSpacing(20);
-        hBox.setMaxHeight(30);
-        hBox.setMinHeight(30);
-        hBox.setMinWidth(500);
+        hBox.setMaxHeight(35);
+        hBox.setMinHeight(35);
+        hBox.setMinWidth(400);
         hBox.getChildren().addAll(getExitButton(), getRestartButton(), getSaveButton(), getTrackToggleButton(), getInformationButton());
         return hBox;
     }

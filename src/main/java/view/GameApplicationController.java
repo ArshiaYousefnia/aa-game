@@ -16,7 +16,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -24,7 +23,6 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import model.DataPackage;
 import model.GameData;
@@ -47,14 +45,13 @@ public class GameApplicationController {
     private ChangeListener changeListener;
     private int totalBallsToThrow = 15;
     private int ballsLeftToThrow = totalBallsToThrow;
-    //TODO fix this
     private int score = 0;
     private double windDegree = 0;
     private double windSpeed = 1.5;
     private double totalTime = 300.0;
     private double timePassed = 0.0;
     private double lastDirectionReverseTime = 0.0;
-    private final double beginningTimeMillis = System.currentTimeMillis();
+    private double beginningTimeMillis = System.currentTimeMillis();
     private Circle centralCircle;
     private Rotate rotate;
     private Timeline timeline;
@@ -88,6 +85,7 @@ public class GameApplicationController {
     private void loadRequirements(DataPackage dataPackage) {
         this.dataPackage = dataPackage;
         GameData gameData = dataPackage.getCurrentData();
+
         totalBallsToThrow = gameData.getTotalBallsToThrow();
         ballsLeftToThrow = gameData.getBallsLeftToThrow();
         score = gameData.getScore();
@@ -95,6 +93,7 @@ public class GameApplicationController {
         windSpeed = gameData.getWindSpeed();
         totalTime = gameData.getTotalTime();
         timePassed = gameData.getTimePassed();
+        beginningTimeMillis -= timePassed * 1000;
         lastDirectionReverseTime = gameData.getLastDirectionReverseTime();
         omega = gameData.getOmega();
         existingCircles.putAll(gameData.getExistingCircles());
@@ -105,8 +104,6 @@ public class GameApplicationController {
     }
 
     private void doPreparations() {
-        existingCircles.put(50.0, null);
-        freezeMode.setProgress(0);
         ballsLeftToThrow++;
         decrementBallsLeft();
         updateTimePassed();
@@ -123,9 +120,9 @@ public class GameApplicationController {
         addRotationToGroups();
         addLabels();
         addProgressbar();
+        checkEarlyPhaseTrigger();
         gamePane.getChildren().addAll(circles, lines, texts, getNewCentralCircle(), centralCircle);
         addMainWatchDog();
-
         assignEventToPane();
 
         timeline.play();
@@ -142,6 +139,8 @@ public class GameApplicationController {
             @Override
             public void handle(KeyEvent keyEvent) {
                 KeyCode keyCode = keyEvent.getCode();
+                double displacement = 8.0;
+
                 if (keyCode.equals(KeyCode.SPACE) && targetCircle == null && ballsLeftToThrow != 0) {
                     targetCircle = reserveCircle;
 
@@ -155,32 +154,29 @@ public class GameApplicationController {
                         gamePane.getChildren().add(reserveCircle);
                     }
                 }
-                else if (keyCode.equals(KeyCode.TAB) && (freezeMode.getProgress() >= 0.99)) {
+                if (keyCode.equals(KeyCode.TAB) && (freezeMode.getProgress() >= 0.99)) {
                     triggerFreezeMode();
                 }
-                else if (windSpeedTransition != null) {
-                    double displacement = 8.0;
-
-                    if (keyCode.equals(KeyCode.LEFT) && (reserveCircleX >= centerX - orbitRadius + displacement)) {
-                        reserveCircleX -= displacement;
-                        if (reserveCircle != null)
-                            reserveCircle.setCenterX(reserveCircle.getCenterX() - displacement);
-                    }
-                    else if (keyCode.equals(KeyCode.RIGHT) && (reserveCircleX <= centerX + orbitRadius - displacement)) {
-                        reserveCircleX += displacement;
-                        if (reserveCircle != null)
-                            reserveCircle.setCenterX(reserveCircle.getCenterX() + displacement);
-                    }
+                if (keyCode.equals(KeyCode.LEFT) && (windSpeedTransition != null) && (reserveCircleX >= centerX - orbitRadius + displacement)) {
+                    reserveCircleX -= displacement;
+                    if (reserveCircle != null)
+                        reserveCircle.setCenterX(reserveCircle.getCenterX() - displacement);
                 }
-                else if (keyCode.equals(KeyCode.P)) {
-                    if (toolbar.getLayoutY() == 750)
-                        toolbar.setLayoutY(650);
-                    else {
-                        toolbar.setLayoutY(750);
+                if (keyCode.equals(KeyCode.RIGHT) && (windSpeedTransition != null) && (reserveCircleX <= centerX + orbitRadius - displacement)) {
+                    reserveCircleX += displacement;
+                    if (reserveCircle != null)
+                        reserveCircle.setCenterX(reserveCircle.getCenterX() + displacement);
+                }
+                if (keyCode.equals(KeyCode.P)) {
+                    if (gamePane.getChildren().contains(toolbar)) {
+                        gamePane.getChildren().remove(toolbar);
                         directFocus();
+                    } else {
+                        gamePane.getChildren().add(toolbar);
                     }
                 }
-                }
+                directFocus();
+        }
         });
     }
 
@@ -202,7 +198,6 @@ public class GameApplicationController {
 
     private void loadGame() {
         centralCircle = getNewCentralCircle();
-        checkEarlyPhaseTrigger();
         for (Map.Entry<Double, Integer> currentSet : existingCircles.entrySet()) {
             double x = getXFromAngle(currentSet.getKey());
             double y = getYFromAngle(currentSet.getKey());
@@ -225,9 +220,8 @@ public class GameApplicationController {
     private void addToolbar() {
         PauseUtility pauseUtility = new PauseUtility(this);
         toolbar = pauseUtility.getPauseToolbar();
-        toolbar.setLayoutX(centerX - 250);
-        toolbar.setLayoutY(750);
-        gamePane.getChildren().add(toolbar);
+        toolbar.setLayoutX(centerX - 200);
+        toolbar.setLayoutY(650);
     }
 
     private void checkEarlyPhaseTrigger() {
@@ -288,7 +282,7 @@ public class GameApplicationController {
                     straightLineMotion.stop();
 
                     gamePane.getChildren().remove(targetCircle);
-                    putCircleToExistingCircles(getSmallCircleToBeAdded(targetCircle.getCenterX(), targetCircle.getCenterY()), ballsLeftToThrow);
+                    putCircleToExistingCircles(getSmallCircleToBeAdded(targetCircle.getCenterX(), targetCircle.getCenterY()));
 
                     if (phase2Animation == null && checkIntersection()) {
                         lostTheGame();
@@ -307,7 +301,13 @@ public class GameApplicationController {
                     else if (ballsLeftToThrow == (totalBallsToThrow / 4))
                         initiatePhase4Animations();
 
-                    if (ballsLeftToThrow == 0) {
+                    if (phase2Animation == null && checkIntersection()) {
+                        lostTheGame();
+                        rotate.angleProperty().removeListener(changeListener);
+                        return;
+                    }
+
+                    if (ballsLeftToThrow == 0 && !checkIntersection()) {
                         wonTheGame();
                         rotate.angleProperty().removeListener(changeListener);
                     }
@@ -315,7 +315,6 @@ public class GameApplicationController {
                     targetCircle = null;
                 }
                 else if (timePassed - totalTime > 0.2) {
-                    //TODO link to end game caller
                     lostTheGame();
                     rotate.angleProperty().removeListener(changeListener);
                 }
@@ -347,12 +346,10 @@ public class GameApplicationController {
             mediaPlayer.stop();
         gamePane.setStyle("-fx-background-color: #0cf50c");
         timeline.stop();
-//        circles.getTransforms().clear();
-//        lines.getTransforms().clear();
-//        texts.getTransforms().clear();
+
         GameWon gameWon = new GameWon(circles, texts, lines);
         gameWon.play();
-
+        checkHighScore();
         gameWon.setOnFinished(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
@@ -372,6 +369,16 @@ public class GameApplicationController {
         });
     }
 
+    private void checkHighScore() {
+        if (DataBase.getCurrentUser() == null) return;
+
+        if (score > DataBase.getCurrentUser().getHighScore()) {
+            DataBase.getCurrentUser().setHighScore(score);
+            DataBase.getCurrentUser().setTime((int) timePassed);
+            DataBase.getCurrentUser().setLevel((int) windSpeed);
+        }
+    }
+
     private void lostTheGame() {
         stopAnimations();
         if (freezeModeTransition != null)
@@ -380,9 +387,7 @@ public class GameApplicationController {
             mediaPlayer.stop();
         gamePane.setStyle("-fx-background-color: red");
         timeline.pause();
-//        circles.getTransforms().clear();
-//        lines.getTransforms().clear();
-//        texts.getTransforms().clear();
+        checkHighScore();
 
         if (reserveCircle != null)
             gamePane.getChildren().remove(reserveCircle);
@@ -411,12 +416,10 @@ public class GameApplicationController {
         });
 
     }
-    private void putCircleToExistingCircles(Circle circle, int number) {
-
-        existingCircles.put(getAngleFromXY(circle.getCenterX(), circle.getCenterY()), number);
+    private void putCircleToExistingCircles(Circle circle) {
 
         Line line = getLine(circle.getCenterX(), circle.getCenterY());
-        Text text = getText(number, circle.getCenterX(), circle.getCenterY());
+        Text text = getText(ballsLeftToThrow, circle.getCenterX(), circle.getCenterY());
 
         lines.getChildren().add(line);
         texts.getChildren().add(text);
@@ -541,6 +544,7 @@ public class GameApplicationController {
 
     private Circle getSmallCircleToBeAdded(double x, double y) {
         double desiredDegree = getAngleFromXY(x, y);
+        existingCircles.put(desiredDegree - rotate.getAngle(), ballsLeftToThrow);
         double newX = getXFromAngle(desiredDegree - rotate.getAngle());
         double newY = getYFromAngle(desiredDegree - rotate.getAngle());
 
@@ -621,10 +625,10 @@ public class GameApplicationController {
         alert.setTitle(TextBase.getCurrentText(message));
         alert.setHeaderText(TextBase.getCurrentText(message));
         ((Button) alert.getDialogPane().lookupButton(ButtonType.OK)).setText("back to main menu");
-        //TODO fix level
+
         alert.setContentText(TextBase.getCurrentText("score") + ": " + score
                 + "\n\n" + TextBase.getCurrentText("time") + ": " + (int) timePassed
-                + "\n\n" + TextBase.getCurrentText("level") +  ": " + 0);
+                + "\n\n" + TextBase.getCurrentText("level") +  ": " + windSpeed);
         alert.show();
         return alert;
     }
@@ -683,6 +687,8 @@ public class GameApplicationController {
     }
     
     protected void exit() throws Exception {
+        if (mediaPlayer != null)
+            mediaPlayer.stop();
         new MainMenu().start(LoginMenu.getStage());
     }
 
@@ -708,13 +714,15 @@ public class GameApplicationController {
     }
 
     protected void saveGame() {
-        updateDataPackage();
         if (DataBase.getCurrentUser() != null) {
+            updateDataPackage();
             DataBase.getCurrentUser().setDataPackage(new DataPackage(dataPackage.getInitialData(), dataPackage.getCurrentData()));
         }
     }
 
     protected void restart() throws Exception {
+        if (mediaPlayer != null)
+            mediaPlayer.stop();
         new GameApplication(
                 new DataPackage(
                         dataPackage.getInitialData(), dataPackage.getInitialData())).start(LoginMenu.getStage());
