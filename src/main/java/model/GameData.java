@@ -58,7 +58,7 @@ public class GameData {
         double freezeLengthSeconds = 5;
 
         for (double degree : initialCircles)
-            existingCircles.put(degree, null);
+            existingCircles.put(degree, 0);
 
         switch (difficultyLevel) {
             case 1:

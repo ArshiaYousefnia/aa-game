@@ -16,6 +16,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -34,7 +35,7 @@ import java.util.Random;
 
 public class GameApplicationController {
     private DataPackage dataPackage;
-    private final double centralCircleRadius = 50;
+    private final double centralCircleRadius = 80;
     private final double  smallCircleRadius = 10;
     private static final double paneWidth = 600;
     private static final double paneHeight = 700;
@@ -142,6 +143,11 @@ public class GameApplicationController {
                 double displacement = 8.0;
 
                 if (keyCode.equals(KeyCode.SPACE) && targetCircle == null && ballsLeftToThrow != 0) {
+                    if (mediaPlayer != null) {
+                        MediaPlayer click = new MediaPlayer(new Media(LoginMenu.class.getResource("/assets/general/click.mp3").toExternalForm()));
+                        click.play();
+                    }
+
                     targetCircle = reserveCircle;
 
                     straightLineMotion = new StraightLineMotion(targetCircle, windDegree);
@@ -168,6 +174,10 @@ public class GameApplicationController {
                         reserveCircle.setCenterX(reserveCircle.getCenterX() + displacement);
                 }
                 if (keyCode.equals(KeyCode.P)) {
+                    if (mediaPlayer != null) {
+                        MediaPlayer click = new MediaPlayer(new Media(LoginMenu.class.getResource("/assets/general/click.mp3").toExternalForm()));
+                        click.play();
+                    }
                     if (gamePane.getChildren().contains(toolbar)) {
                         gamePane.getChildren().remove(toolbar);
                         directFocus();
@@ -291,7 +301,7 @@ public class GameApplicationController {
                     }
 
                     incrementFreezeBar();
-                    addScore(5);//TODO improve score protocol
+                    addScore(calculateScore());
                     decrementBallsLeft();
 
                     if (ballsLeftToThrow == (3 * totalBallsToThrow) / 4)
@@ -322,6 +332,24 @@ public class GameApplicationController {
         };
 
         rotate.angleProperty().addListener(changeListener);
+    }
+
+    private int calculateScore() {
+        int points = 1;
+
+        if (windSpeedTransition != null)
+            points = 6;
+        else if (phase3Animation != null)
+            points = 3;
+        else if (phase2Animation != null)
+            points = 2;
+
+        if (windSpeed == 2)
+            points *= 2;
+        else if (windSpeed == 3)
+            points *= 3;
+
+        return points;
     }
 
     private void initiatePhase4Animations() {
@@ -577,7 +605,7 @@ public class GameApplicationController {
     }
 
     private Text getText(Integer number, double startX, double startY) {
-        Text text = new Text((number == null) ? " " : Integer.toString(number));
+        Text text = new Text((number == 0) ? " " : Integer.toString(number));
         text.setFill(Color.WHITE);
         text.setStyle("-fx-font-size: medium");
 

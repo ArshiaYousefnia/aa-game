@@ -101,8 +101,9 @@ public class PauseUtility {
                 alert.setHeaderText(TextBase.getCurrentText("game controls"));
                 alert.setContentText(TextBase.getCurrentText("throw balls")
                         + " : " + "Space"
-                        + "\n\n" + TextBase.getCurrentText("Freeze")
-                        + " : " + "Tab" + "\n\n" + TextBase.getCurrentText("pause") + " : " + "p");
+                        + "\n" + TextBase.getCurrentText("Freeze")
+                        + " : " + "Tab" + "\n" + TextBase.getCurrentText("pause") + " : " + "P"
+                        + "\n" + TextBase.getCurrentText("movement") + " : " + TextBase.getCurrentText("arrow keys"));
                 alert.show();
             }
         });

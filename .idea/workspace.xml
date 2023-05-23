@@ -9,16 +9,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="984c1673-3ca8-4fd8-a5d9-77763dffc3a0" name="Changes" comment="15">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/assets/avatars/guest.jpg" afterDir="false" />
+    <list default="true" id="984c1673-3ca8-4fd8-a5d9-77763dffc3a0" name="Changes" comment="16">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/GameApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/GameApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/controller/TextBase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/controller/TextBase.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/model/GameData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/model/GameData.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/view/GameApplicationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/GameApplicationController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/LoginMenuController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/LoginMenuController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/MainMenuController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/MainMenuController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/view/PauseUtility.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/PauseUtility.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/SettingsMenuController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/SettingsMenuController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/view/model/CircleButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/view/model/CircleButton.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/data/users.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/data/users.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -151,7 +147,7 @@
       <workItem from="1684610083694" duration="1797000" />
       <workItem from="1684649933775" duration="44145000" />
       <workItem from="1684703840358" duration="368000" />
-      <workItem from="1684822405460" duration="29464000" />
+      <workItem from="1684822405460" duration="35947000" />
     </task>
     <task id="LOCAL-00001" summary="second">
       <created>1684240029344</created>
@@ -272,7 +268,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684833594138</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="16">
+      <created>1684858253613</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1684858253613</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -310,6 +313,7 @@
     <MESSAGE value="13" />
     <MESSAGE value="14" />
     <MESSAGE value="15" />
-    <option name="LAST_COMMIT_MESSAGE" value="15" />
+    <MESSAGE value="16" />
+    <option name="LAST_COMMIT_MESSAGE" value="16" />
   </component>
 </project>
