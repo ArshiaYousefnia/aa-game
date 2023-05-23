@@ -31,7 +31,21 @@ public class GameData {
         this.freezeLengthSeconds = freezeLengthSeconds;
     }
 
-    public static GameData getNewGameData(int difficultyLevel, ArrayList<Double> initialCircles, int totalBallsToThrow) {
+    public GameData(GameData toBeCopied) {
+        this.totalBallsToThrow = toBeCopied.totalBallsToThrow;
+        this.ballsLeftToThrow = toBeCopied.ballsLeftToThrow;
+        this.score = toBeCopied.score;
+        this.windDegree = toBeCopied.windDegree;
+        this.windSpeed = toBeCopied.windSpeed;
+        this.timePassed = toBeCopied.timePassed;
+        this.lastDirectionReverseTime = toBeCopied.lastDirectionReverseTime;
+        this.omega = toBeCopied.omega;
+        this.existingCircles.putAll(toBeCopied.existingCircles);
+        this.freezeBarProgress = toBeCopied.freezeBarProgress;
+        this.freezeLengthSeconds = toBeCopied.freezeLengthSeconds;
+    }
+
+    public static GameData getNewGameGameData(int difficultyLevel, ArrayList<Double> initialCircles, int totalBallsToThrow) {
         int ballsLeftToThrow = totalBallsToThrow;
         int score = 0;
         double windDegree = 0;

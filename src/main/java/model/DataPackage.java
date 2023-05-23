@@ -5,8 +5,8 @@ public class DataPackage {
     private GameData currentData;
 
     public DataPackage(GameData initialData, GameData currentData) {
-        this.initialData = initialData;
-        this.currentData = currentData;
+        this.initialData = new GameData(initialData);
+        this.currentData = new GameData(currentData);
     }
 
     public GameData getInitialData() {

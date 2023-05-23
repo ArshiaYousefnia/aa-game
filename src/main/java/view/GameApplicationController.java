@@ -1,5 +1,6 @@
 package view;
 
+import controller.DataBase;
 import controller.TextBase;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -13,7 +14,10 @@ import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -69,6 +73,7 @@ public class GameApplicationController {
     private Group circles = new Group();
     private Group texts = new Group();
     private Pane gamePane;
+    private HBox toolbar;
     private final Label ballsLeftLabel = new Label(Integer.toString(ballsLeftToThrow));
     private final Label scoreBoard = new Label(Integer.toString(score));
     private final Label timePassedLabel = new Label("0 : 0");
@@ -76,6 +81,9 @@ public class GameApplicationController {
     private final ProgressBar freezeMode = new ProgressBar(0);
     private boolean isFreezed = false;
     private double freezeLengthSeconds = 3;
+    private MediaPlayer mediaPlayer = null;
+
+
 
     private void loadRequirements(DataPackage dataPackage) {
         this.dataPackage = dataPackage;
@@ -121,6 +129,11 @@ public class GameApplicationController {
         assignEventToPane();
 
         timeline.play();
+        if (DataBase.isSoundStatus()) {
+            mediaPlayer = new MediaPlayer(TrackUtility.getMedia(1));
+            mediaPlayer.setAutoPlay(true);
+        }
+
         return gamePane;
     }
 
@@ -129,7 +142,6 @@ public class GameApplicationController {
             @Override
             public void handle(KeyEvent keyEvent) {
                 KeyCode keyCode = keyEvent.getCode();
-
                 if (keyCode.equals(KeyCode.SPACE) && targetCircle == null && ballsLeftToThrow != 0) {
                     targetCircle = reserveCircle;
 
@@ -160,6 +172,14 @@ public class GameApplicationController {
                             reserveCircle.setCenterX(reserveCircle.getCenterX() + displacement);
                     }
                 }
+                else if (keyCode.equals(KeyCode.P)) {
+                    if (toolbar.getLayoutY() == 750)
+                        toolbar.setLayoutY(650);
+                    else {
+                        toolbar.setLayoutY(750);
+                        directFocus();
+                    }
+                }
                 }
         });
     }
@@ -173,7 +193,9 @@ public class GameApplicationController {
         freezeModeTransition.setOnFinished(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
+                setOmega(omega / 7);
                 isFreezed = false;
+                directFocus();
             }
         });
     }
@@ -197,6 +219,15 @@ public class GameApplicationController {
             reserveCircle = getSmallCircleForSetup(centerX, centerY + beginningPointDistanceFromCenter);
             gamePane.getChildren().add(reserveCircle);
         }
+        addToolbar();
+    }
+
+    private void addToolbar() {
+        PauseUtility pauseUtility = new PauseUtility(this);
+        toolbar = pauseUtility.getPauseToolbar();
+        toolbar.setLayoutX(centerX - 250);
+        toolbar.setLayoutY(750);
+        gamePane.getChildren().add(toolbar);
     }
 
     private void checkEarlyPhaseTrigger() {
@@ -239,7 +270,6 @@ public class GameApplicationController {
         scoreBoard.setAlignment(Pos.CENTER);
         timePassedLabel.setLayoutX(centerX - 75);
         gamePane.getChildren().addAll(scoreBoard, ballsLeftLabel, timePassedLabel, windDegreeLabel);
-        //TODO add top labels to pane
     }
 
     private void addMainWatchDog() {
@@ -278,7 +308,6 @@ public class GameApplicationController {
                         initiatePhase4Animations();
 
                     if (ballsLeftToThrow == 0) {
-                        //TODO link to end game caller
                         wonTheGame();
                         rotate.angleProperty().removeListener(changeListener);
                     }
@@ -312,6 +341,10 @@ public class GameApplicationController {
 
     private void wonTheGame() {
         stopAnimations();
+        if (freezeModeTransition != null)
+            freezeModeTransition.shutDown();
+        if (mediaPlayer != null)
+            mediaPlayer.stop();
         gamePane.setStyle("-fx-background-color: #0cf50c");
         timeline.stop();
 //        circles.getTransforms().clear();
@@ -329,8 +362,7 @@ public class GameApplicationController {
                     @Override
                     public void handle(DialogEvent dialogEvent) {
                         try {
-                            new LoginMenu().start(new Stage());
-                            //TODO change for main menu
+                            new MainMenu().start(LoginMenu.getStage());
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -342,6 +374,10 @@ public class GameApplicationController {
 
     private void lostTheGame() {
         stopAnimations();
+        if (freezeModeTransition != null)
+            freezeModeTransition.shutDown();
+        if (mediaPlayer != null)
+            mediaPlayer.stop();
         gamePane.setStyle("-fx-background-color: red");
         timeline.pause();
 //        circles.getTransforms().clear();
@@ -364,8 +400,7 @@ public class GameApplicationController {
                     @Override
                     public void handle(DialogEvent dialogEvent) {
                         try {
-                            new LoginMenu().start(new Stage());
-                            //TODO change for main menu
+                            new MainMenu().start(LoginMenu.getStage());
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -627,7 +662,7 @@ public class GameApplicationController {
         gamePane.requestFocus();
     }
 
-    public double getFreefreezeLengthSeconds() {
+    public double getFreezeLengthSeconds() {
         return freezeLengthSeconds;
     }
 
@@ -645,5 +680,43 @@ public class GameApplicationController {
 
     public DataPackage getDataPackage() {
         return dataPackage;
+    }
+    
+    protected void exit() throws Exception {
+        new MainMenu().start(LoginMenu.getStage());
+    }
+
+    protected void toggleTrack(Button button) {
+        if (mediaPlayer == null) {
+            mediaPlayer = new MediaPlayer(TrackUtility.getMedia(1));
+            mediaPlayer.setAutoPlay(true);
+            mediaPlayer.setCycleCount(-1);
+        } else if (mediaPlayer.getMedia().equals(TrackUtility.getMedia(1))) {
+            mediaPlayer.stop();
+            mediaPlayer = new MediaPlayer(TrackUtility.getMedia(2));
+            mediaPlayer.setAutoPlay(true);
+            mediaPlayer.setCycleCount(-1);
+        } else if (mediaPlayer.getMedia().equals(TrackUtility.getMedia(2))) {
+            mediaPlayer.stop();
+            mediaPlayer = new MediaPlayer(TrackUtility.getMedia(3));
+            mediaPlayer.setAutoPlay(true);
+            mediaPlayer.setCycleCount(-1);
+        }  else if (mediaPlayer.getMedia().equals(TrackUtility.getMedia(3))) {
+            mediaPlayer.stop();
+            mediaPlayer = null;
+        }
+    }
+
+    protected void saveGame() {
+        updateDataPackage();
+        if (DataBase.getCurrentUser() != null) {
+            DataBase.getCurrentUser().setDataPackage(new DataPackage(dataPackage.getInitialData(), dataPackage.getCurrentData()));
+        }
+    }
+
+    protected void restart() throws Exception {
+        new GameApplication(
+                new DataPackage(
+                        dataPackage.getInitialData(), dataPackage.getInitialData())).start(LoginMenu.getStage());
     }
 }

@@ -15,12 +15,14 @@ public class User {
     private int highScore;
     private int time;
     private int level;
+    private DataPackage dataPackage;
 
     private User(String username, String password, String avatarPath, int number) {
         this.username = username;
         this.password = password;
         this.avatarPath = avatarPath;
         this.defaultAvatarNumber = number;
+        dataPackage = null;
     }
 
     public static User getNewUser(String username, String password) {
@@ -119,5 +121,13 @@ public class User {
         setAvatarPath("/assets/avatars/default/"
                 + defaultAvatarNumber
                 + ".jpg");
+    }
+
+    public DataPackage getDataPackage() {
+        return dataPackage;
+    }
+
+    public void setDataPackage(DataPackage dataPackage) {
+        this.dataPackage = dataPackage;
     }
 }

@@ -8,6 +8,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
+import model.DataPackage;
+import model.GameData;
 import view.model.CircleButton;
 
 public class MainMenuController {
@@ -56,8 +58,11 @@ public class MainMenuController {
     private void mountCenterButtons(VBox vBox) {
         int radius1 = 80, radius2 = 60;
         HBox hBox1 = getHBox();
+        GameApplication gameApplication = new GameApplication( new DataPackage(
+                GameData.getNewGameGameData(DataBase.getDifficulty(), DataBase.getCurrentBalls(), DataBase.getBallsToThrow()),
+                GameData.getNewGameGameData(DataBase.getDifficulty(), DataBase.getCurrentBalls(), DataBase.getBallsToThrow())));
         hBox1.getChildren().add(CircleButton.getCircleButton(
-                getImagePattern(playButtonSource), radius1, null));
+                getImagePattern(playButtonSource), radius1, gameApplication));
         //TODO fix destination apps
         hBox1.getChildren().add(CircleButton.getCircleButton(
                 getImagePattern(resumeButtonSource), radius1, null));

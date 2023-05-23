@@ -29,30 +29,34 @@ public class FreezeModeTransition extends Transition {
     public FreezeModeTransition(GameApplicationController controller) {
         this.controller = controller;
         this.initialOmega = controller.getOmega();
-        this.setCycleDuration(Duration.millis(controller.getFreefreezeLengthSeconds() * 1000));
+        this.setCycleDuration(Duration.millis(controller.getFreezeLengthSeconds() * 1000));
         this.setCycleCount(1);
         this.centralCircle = controller.getCentralCircle();
+        controller.setOmega(initialOmega * 7);
+        mediaPlayer.play();
     }
 
 
-        @Override
+    @Override
     protected void interpolate(double v) {
-            if (v <= 0.1) {
-                centralCircle.setFill(imagePattern1);
-                mediaPlayer.play();
-                controller.setOmega(initialOmega * 7);
-            }
-            else if (v <= 0.4)
-                centralCircle.setFill(imagePattern2);
-            else if (v <= 0.8) {
-                centralCircle.setFill(imagePattern3);
-            } else if (v <= 0.95) {
-                centralCircle.setFill(imagePattern4);
-            } else {
-                centralCircle.setFill(Color.BLACK);
-                mediaPlayer.stop();
-                controller.setOmega(initialOmega);
-            }
-        }
-}
+        controller.directFocus();
+        if (v <= 0.1) {
+            centralCircle.setFill(imagePattern1);
 
+        } else if (v <= 0.4)
+            centralCircle.setFill(imagePattern2);
+        else if (v <= 0.8) {
+            centralCircle.setFill(imagePattern3);
+        } else if (v <= 0.99) {
+            centralCircle.setFill(imagePattern4);
+        } else {
+            centralCircle.setFill(Color.BLACK);
+            mediaPlayer.stop();
+        }
+    }
+
+    public void shutDown() {
+        this.mediaPlayer.stop();
+        this.stop();
+    }
+}
